@@ -21,6 +21,11 @@ services:
     depends_on:
       - stats-db
 
+  ewm-service:
+    image: busybox:latest
+    command: [ "sleep", "infinity" ]
+    container_name: ewm-service-placeholder
+
 #services:
 #  main-db:
 #    image: postgres:13

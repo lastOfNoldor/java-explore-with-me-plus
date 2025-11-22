@@ -1,3 +1,3 @@
-FROM openjdk:21-jdk
+FROM openjdk:21
 COPY target/stat-server-*.jar app.jar
 ENTRYPOINT ["java", "-jar", "app.jar"]

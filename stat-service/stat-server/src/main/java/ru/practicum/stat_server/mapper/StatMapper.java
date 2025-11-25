@@ -1,22 +1,16 @@
 package ru.practicum.stat_server.mapper;
 
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import ru.practicum.stat_dto.EndpointHitDto;
 import ru.practicum.stat_server.model.EndpointHit;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+@Mapper(componentModel = "spring")
+public interface StatMapper {
 
-@Component
-public class StatMapper {
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    @Mapping(target = "timestamp", source = "timestamp", dateFormat = "yyyy-MM-dd HH:mm:ss")
+    EndpointHit toEntity(EndpointHitDto dto);
 
-    public EndpointHit toEntity(EndpointHitDto dto) {
-        return EndpointHit.builder()
-                .app(dto.getApp())
-                .uri(dto.getUri())
-                .ip(dto.getIp())
-                .timestamp(LocalDateTime.parse(dto.getTimestamp(), FORMATTER))
-                .build();
-    }
+    @Mapping(target = "timestamp", source = "timestamp", dateFormat = "yyyy-MM-dd HH:mm:ss")
+    EndpointHitDto toDto(EndpointHit entity);
 }

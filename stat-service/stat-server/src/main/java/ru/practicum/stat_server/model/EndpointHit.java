@@ -1,16 +1,7 @@
 package ru.practicum.stat_server.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import jakarta.persistence.Id;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Column;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import jakarta.persistence.*;
+import lombok.*;
 
 import java.time.LocalDateTime;
 

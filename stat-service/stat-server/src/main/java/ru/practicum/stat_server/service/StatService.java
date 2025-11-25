@@ -25,12 +25,7 @@ public class StatService {
         statRepository.save(hit);
     }
 
-    public List<ViewStatsDto> getStats(
-            String start,
-            String end,
-            List<String> uris,
-            Boolean unique
-    ) {
+    public List<ViewStatsDto> getStats(String start, String end, List<String> uris, Boolean unique) {
         LocalDateTime startTime = LocalDateTime.parse(start, FORMATTER);
         LocalDateTime endTime = LocalDateTime.parse(end, FORMATTER);
 

@@ -23,7 +23,6 @@ public class EndpointHitDto {
     @NotBlank(message = "Ip не может быть пустым")
     private String ip;
     @NotBlank(message = "Timestamp не может быть пустым")
-    @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
-            message = "Timestamp должен соответствовать формату yyyy-MM-dd HH:mm:ss")
+    @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$", message = "Timestamp должен соответствовать формату yyyy-MM-dd HH:mm:ss")
     private String timestamp;
 }

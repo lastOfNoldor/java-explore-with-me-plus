@@ -2,7 +2,6 @@ package ru.practicum.stat_server.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import ru.practicum.stat_dto.ViewStatsDto;
 import ru.practicum.stat_server.model.EndpointHit;
 
@@ -18,7 +17,7 @@ public interface StatRepository extends JpaRepository<EndpointHit, Long> {
             AND (:uris IS NULL OR h.uri IN :uris)
             GROUP BY h.app, h.uri
             ORDER BY hits DESC""")
-    List<ViewStatsDto> getStats(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end, @Param("uris") List<String> uris);
+    List<ViewStatsDto> getStats(LocalDateTime start, LocalDateTime end, List<String> uris);
 
     @Query("""
             SELECT new ru.practicum.stat_dto.ViewStatsDto(h.app, h.uri, COUNT(DISTINCT h.ip) as hits )
@@ -27,5 +26,5 @@ public interface StatRepository extends JpaRepository<EndpointHit, Long> {
             AND (:uris IS NULL OR h.uri IN :uris)
             GROUP BY h.app, h.uri
             ORDER BY hits DESC""")
-    List<ViewStatsDto> getUniqueStats(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end, @Param("uris") List<String> uris);
+    List<ViewStatsDto> getUniqueStats(LocalDateTime start, LocalDateTime end, List<String> uris);
 }

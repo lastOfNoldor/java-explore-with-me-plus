@@ -40,4 +40,19 @@ public class ErrorHandler {
 
         return new ErrorResponse("Внутренняя ошибка сервера", "Произошла непредвиденная ошибка", "INTERNAL_SERVER_ERROR", LocalDateTime.now());
     }
+
+    @ExceptionHandler(NotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleNotFoundException(NotFoundException e) {
+        log.warn("Объект не найден: {}", e.getMessage());
+        return new ErrorResponse("Искомый объект не был найден", e.getMessage(), "NOT_FOUND", LocalDateTime.now());
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleConflictException(ConflictException e) {
+        log.warn("Конфликт данных: {}", e.getMessage());
+        return new ErrorResponse("Для запрошенной операции условия не выполнены", e.getMessage(), "CONFLICT", LocalDateTime.now());
+    }
+
 }

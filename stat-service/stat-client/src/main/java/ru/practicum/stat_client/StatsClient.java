@@ -9,8 +9,6 @@ import ru.practicum.stat_dto.HitDto;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @Component
@@ -53,4 +51,5 @@ public class StatsClient {
         }
         return request.getRemoteAddr();
     }
+
 }

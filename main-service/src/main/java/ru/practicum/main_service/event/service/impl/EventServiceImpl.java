@@ -19,7 +19,7 @@ import ru.practicum.main_service.exception.NotFoundException;
 import ru.practicum.main_service.exception.ValidationException;
 import ru.practicum.main_service.user.model.User;
 import ru.practicum.main_service.user.repository.UserRepository;
-import ru.practicum.stat_client.RestStatClient;
+import ru.practicum.stat_client.StatsClient;
 import ru.practicum.stat_dto.EndpointHitDto;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,7 +38,7 @@ public class EventServiceImpl implements EventService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final EventMapper eventMapper;
-    private final RestStatClient statsClient;
+    private final StatsClient statsClient;
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Override
@@ -196,7 +196,12 @@ public class EventServiceImpl implements EventService {
                 .ip(getClientIpAddress(request))
                 .timestamp(LocalDateTime.now().format(FORMATTER))
                 .build();
-        statsClient.hit(endpointHitDto);
+
+        try {
+            statsClient.hit(request);
+        } catch (Exception e) {
+            log.warn("Не удалось отправить статистику: {}", e.getMessage());
+        }
 
         return events.stream()
                 .map(eventMapper::toEventShortDto)
@@ -213,13 +218,11 @@ public class EventServiceImpl implements EventService {
         }
 
         // Отправка статистики
-        EndpointHitDto endpointHitDto = EndpointHitDto.builder()
-                .app("main-service")
-                .uri(request.getRequestURI())
-                .ip(getClientIpAddress(request))
-                .timestamp(LocalDateTime.now().format(FORMATTER))
-                .build();
-        statsClient.hit(endpointHitDto);
+        try {
+            statsClient.hit(request);
+        } catch (Exception e) {
+            log.warn("Не удалось отправить статистику: {}", e.getMessage());
+        }
 
         return eventMapper.toEventFullDto(event);
     }

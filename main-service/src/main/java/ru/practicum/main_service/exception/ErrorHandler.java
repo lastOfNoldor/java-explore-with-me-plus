@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
@@ -46,6 +45,20 @@ public class ErrorHandler {
     public ErrorResponse handleConflictException(ConflictException e) {
         log.warn("Конфликт: {}", e.getMessage());
         return new ErrorResponse("Конфликт данных", e.getMessage(), "CONFLICT", LocalDateTime.now());
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleNotFoundException(NotFoundException e) {
+        log.warn("Объект не найден: {}", e.getMessage());
+        return new ErrorResponse("Объект не найден", e.getMessage(), "NOT_FOUND", LocalDateTime.now());
+    }
+
+    @ExceptionHandler(ValidationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleValidationException(ValidationException e) {
+        log.warn("Ошибка валидации: {}", e.getMessage());
+        return new ErrorResponse("Ошибка валидации", e.getMessage(), "BAD_REQUEST", LocalDateTime.now());
     }
 
 }

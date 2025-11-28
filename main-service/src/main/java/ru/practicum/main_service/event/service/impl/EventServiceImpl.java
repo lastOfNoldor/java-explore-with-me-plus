@@ -19,7 +19,7 @@ import ru.practicum.main_service.exception.NotFoundException;
 import ru.practicum.main_service.exception.ValidationException;
 import ru.practicum.main_service.user.model.User;
 import ru.practicum.main_service.user.repository.UserRepository;
-import ru.practicum.stats_client.StatsClient;
+import ru.practicum.stat_client.StatsClient;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
@@ -59,9 +59,7 @@ public class EventServiceImpl implements EventService {
             throw new ValidationException("Дата события должна быть не ранее чем через 2 часа от текущего момента");
         }
 
-        Event event = eventMapper.toEvent(newEventDto);
-        event.setCategory(category);
-        event.setInitiator(user);
+        Event event = eventMapper.toEvent(newEventDto, category, user);
         event.setCreatedOn(LocalDateTime.now());
         event.setState(EventState.PENDING);
 

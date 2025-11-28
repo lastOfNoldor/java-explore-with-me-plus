@@ -21,7 +21,7 @@ import ru.practicum.main_service.user.model.User;
 import ru.practicum.main_service.user.repository.UserRepository;
 import ru.practicum.stats_client.StatsClient;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;

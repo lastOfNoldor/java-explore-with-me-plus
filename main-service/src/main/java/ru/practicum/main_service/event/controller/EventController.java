@@ -10,10 +10,10 @@ import ru.practicum.main_service.event.dto.*;
 import ru.practicum.main_service.event.enums.EventState;
 import ru.practicum.main_service.event.service.EventService;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import java.time.LocalDateTime;
 import java.util.List;
 

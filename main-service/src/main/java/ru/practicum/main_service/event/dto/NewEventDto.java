@@ -3,7 +3,7 @@ package ru.practicum.main_service.event.dto;
 import lombok.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import javax.validation.constraints.*;
+import jakarta.validation.constraints.*;
 import java.time.LocalDateTime;
 
 @Data
@@ -30,11 +30,14 @@ public class NewEventDto {
     @NotNull
     private LocationDto location;
 
+    @Builder.Default
     private Boolean paid = false;
 
     @PositiveOrZero
+    @Builder.Default
     private Integer participantLimit = 0;
 
+    @Builder.Default
     private Boolean requestModeration = true;
 
     @NotBlank

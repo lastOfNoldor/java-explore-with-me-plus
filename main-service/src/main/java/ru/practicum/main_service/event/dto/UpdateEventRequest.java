@@ -3,7 +3,7 @@ package ru.practicum.main_service.event.dto;
 import lombok.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 
 @Data
@@ -32,4 +32,13 @@ public class UpdateEventRequest {
 
     @Size(min = 3, max = 120)
     private String title;
+
+    private StateAction stateAction;
+
+    public enum StateAction {
+        SEND_TO_REVIEW,
+        CANCEL_REVIEW,
+        PUBLISH_EVENT,
+        REJECT_EVENT
+    }
 }

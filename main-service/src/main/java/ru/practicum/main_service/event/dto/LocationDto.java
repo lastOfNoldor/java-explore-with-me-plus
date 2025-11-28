@@ -1,16 +1,18 @@
-package ru.practicum.main_service.event.model;
+package ru.practicum.main_service.event.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import jakarta.persistence.Embeddable;
+import jakarta.validation.constraints.NotNull;
 
-@Embeddable
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Location {
+public class LocationDto {
+    @NotNull
     private Float lat;
+
+    @NotNull
     private Float lon;
 }

@@ -5,7 +5,7 @@ import ru.practicum.main_service.category.model.Category;
 import ru.practicum.main_service.event.enums.EventState;
 import ru.practicum.main_service.user.model.User;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity

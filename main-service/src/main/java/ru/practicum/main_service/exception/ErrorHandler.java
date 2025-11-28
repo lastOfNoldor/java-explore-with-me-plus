@@ -40,4 +40,12 @@ public class ErrorHandler {
 
         return new ErrorResponse("Внутренняя ошибка сервера", "Произошла непредвиденная ошибка", "INTERNAL_SERVER_ERROR", LocalDateTime.now());
     }
+
+    @ExceptionHandler(ConflictException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleConflictException(ConflictException e) {
+        log.warn("Конфликт: {}", e.getMessage());
+        return new ErrorResponse("Конфликт данных", e.getMessage(), "CONFLICT", LocalDateTime.now());
+    }
+
 }

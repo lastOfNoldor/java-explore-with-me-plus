@@ -19,10 +19,12 @@ import ru.practicum.main_service.exception.NotFoundException;
 import ru.practicum.main_service.exception.ValidationException;
 import ru.practicum.main_service.user.model.User;
 import ru.practicum.main_service.user.repository.UserRepository;
-import ru.practicum.stat_client.StatsClient;
+import ru.practicum.stat_client.RestStatClient;
+import ru.practicum.stat_dto.EndpointHitDto;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,7 +38,8 @@ public class EventServiceImpl implements EventService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final EventMapper eventMapper;
-    private final StatsClient statsClient;
+    private final RestStatClient statsClient;
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Override
     public List<EventShortDto> getEventsByUser(Long userId, Integer from, Integer size) {
@@ -187,7 +190,13 @@ public class EventServiceImpl implements EventService {
                 rangeStart, rangeEnd, pageable);
 
         // Отправка статистики
-        statsClient.hit(request);
+        EndpointHitDto endpointHitDto = EndpointHitDto.builder()
+                .app("main-service")
+                .uri(request.getRequestURI())
+                .ip(getClientIpAddress(request))
+                .timestamp(LocalDateTime.now().format(FORMATTER))
+                .build();
+        statsClient.hit(endpointHitDto);
 
         return events.stream()
                 .map(eventMapper::toEventShortDto)
@@ -204,7 +213,13 @@ public class EventServiceImpl implements EventService {
         }
 
         // Отправка статистики
-        statsClient.hit(request);
+        EndpointHitDto endpointHitDto = EndpointHitDto.builder()
+                .app("main-service")
+                .uri(request.getRequestURI())
+                .ip(getClientIpAddress(request))
+                .timestamp(LocalDateTime.now().format(FORMATTER))
+                .build();
+        statsClient.hit(endpointHitDto);
 
         return eventMapper.toEventFullDto(event);
     }
@@ -249,4 +264,13 @@ public class EventServiceImpl implements EventService {
             event.setCategory(category);
         }
     }
+
+    private String getClientIpAddress(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
+            return xForwardedFor.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
+    }
+
 }

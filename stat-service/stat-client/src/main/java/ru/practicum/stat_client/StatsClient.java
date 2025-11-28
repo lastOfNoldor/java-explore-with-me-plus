@@ -5,24 +5,27 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-import ru.practicum.stat_dto.HitDto;
+import ru.practicum.stat_dto.EndpointHitDto;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class StatsClient {
+
     private final RestTemplate restTemplate;
     private final String statsServiceUrl = "http://localhost:9090"; // URL сервиса статистики
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public void hit(HttpServletRequest request) {
-        HitDto hitDto = HitDto.builder()
+        EndpointHitDto hitDto = EndpointHitDto.builder()
                 .app("main-service")
                 .uri(request.getRequestURI())
                 .ip(getClientIpAddress(request))
-                .timestamp(LocalDateTime.now())
+                .timestamp(LocalDateTime.now().format(FORMATTER))
                 .build();
 
         try {

@@ -33,3 +33,23 @@ CREATE TABLE IF NOT EXISTS events (
     CONSTRAINT fk_events_categories FOREIGN KEY (category_id) REFERENCES categories (id),
     CONSTRAINT fk_events_users FOREIGN KEY (initiator_id) REFERENCES users (id)
 );
+
+CREATE INDEX IF NOT EXISTS idx_category_name ON categories (name);
+CREATE INDEX IF NOT EXISTS idx_event_category ON events (category_id);
+CREATE INDEX IF NOT EXISTS idx_event_initiator ON events (initiator_id);
+CREATE INDEX IF NOT EXISTS idx_event_date ON events (event_date);
+CREATE INDEX IF NOT EXISTS idx_event_state ON events (state);
+CREATE INDEX IF NOT EXISTS idx_event_annotation ON events USING gin (to_tsvector('english', annotation));
+CREATE INDEX IF NOT EXISTS idx_event_description ON events USING gin (to_tsvector('english', description));
+
+COMMENT ON TABLE categories IS 'Таблица категорий событий';
+COMMENT ON TABLE users IS 'Таблица пользователей';
+COMMENT ON TABLE events IS 'Таблица событий';
+
+COMMENT ON INDEX idx_category_name IS 'Индекс для быстрого поиска категорий по имени';
+COMMENT ON INDEX idx_event_category IS 'Индекс для поиска событий по категории';
+COMMENT ON INDEX idx_event_initiator IS 'Индекс для поиска событий по организатору';
+COMMENT ON INDEX idx_event_date IS 'Индекс для сортировки и фильтрации событий по дате';
+COMMENT ON INDEX idx_event_state IS 'Индекс для фильтрации событий по состоянию';
+COMMENT ON INDEX idx_event_annotation IS 'GIN индекс для полнотекстового поиска по аннотации';
+COMMENT ON INDEX idx_event_description IS 'GIN индекс для полнотекстового поиска по описанию';

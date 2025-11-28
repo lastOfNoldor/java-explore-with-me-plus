@@ -51,5 +51,4 @@ public class StatsClient {
         }
         return request.getRemoteAddr();
     }
-
 }

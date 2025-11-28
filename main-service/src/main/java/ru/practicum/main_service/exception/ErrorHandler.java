@@ -1,0 +1,58 @@
+package ru.practicum.main_service.exception;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+
+import java.time.LocalDateTime;
+import java.util.stream.Collectors;
+
+@Slf4j
+@RestControllerAdvice
+public class ErrorHandler {
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleValidationException(MethodArgumentNotValidException e) {
+        String errors = e.getBindingResult().getFieldErrors().stream().map(error -> error.getField() + ": " + error.getDefaultMessage()).collect(Collectors.joining("; "));
+
+        log.warn("Ошибка валидации: {}", errors);
+        return new ErrorResponse("Ошибка валидации данных", errors, "BAD_REQUEST", LocalDateTime.now());
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleMissingParams(MissingServletRequestParameterException e) {
+        log.warn("Отсутствует обязательный параметр: {}", e.getMessage());
+
+        return new ErrorResponse("Отсутствует обязательный параметр", e.getMessage(), "BAD_REQUEST", LocalDateTime.now());
+    }
+
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleGenericException(Exception e) {
+        log.error("Внутренняя ошибка сервера: {}", e.getMessage(), e);
+
+        return new ErrorResponse("Внутренняя ошибка сервера", "Произошла непредвиденная ошибка", "INTERNAL_SERVER_ERROR", LocalDateTime.now());
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleNotFoundException(NotFoundException e) {
+        log.warn("Объект не найден: {}", e.getMessage());
+        return new ErrorResponse("Искомый объект не был найден", e.getMessage(), "NOT_FOUND", LocalDateTime.now());
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleConflictException(ConflictException e) {
+        log.warn("Конфликт данных: {}", e.getMessage());
+        return new ErrorResponse("Для запрошенной операции условия не выполнены", e.getMessage(), "CONFLICT", LocalDateTime.now());
+    }
+
+}

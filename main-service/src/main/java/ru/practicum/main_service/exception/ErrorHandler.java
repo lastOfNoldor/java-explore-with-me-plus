@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
@@ -40,18 +41,18 @@ public class ErrorHandler {
         return new ErrorResponse("Внутренняя ошибка сервера", "Произошла непредвиденная ошибка", "INTERNAL_SERVER_ERROR", LocalDateTime.now());
     }
 
-    @ExceptionHandler(ConflictException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ErrorResponse handleConflictException(ConflictException e) {
-        log.warn("Конфликт: {}", e.getMessage());
-        return new ErrorResponse("Конфликт данных", e.getMessage(), "CONFLICT", LocalDateTime.now());
-    }
-
     @ExceptionHandler(NotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleNotFoundException(NotFoundException e) {
         log.warn("Объект не найден: {}", e.getMessage());
-        return new ErrorResponse("Объект не найден", e.getMessage(), "NOT_FOUND", LocalDateTime.now());
+        return new ErrorResponse("Искомый объект не был найден", e.getMessage(), "NOT_FOUND", LocalDateTime.now());
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleConflictException(ConflictException e) {
+        log.warn("Конфликт данных: {}", e.getMessage());
+        return new ErrorResponse("Для запрошенной операции условия не выполнены", e.getMessage(), "CONFLICT", LocalDateTime.now());
     }
 
     @ExceptionHandler(ValidationException.class)

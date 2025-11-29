@@ -12,7 +12,6 @@ import ru.practicum.main_service.category.mapper.CategoryMapper;
 import ru.practicum.main_service.category.model.Category;
 import ru.practicum.main_service.category.repository.CategoryRepository;
 import ru.practicum.main_service.category.service.CategoryService;
-
 import ru.practicum.main_service.exception.ConflictException;
 import ru.practicum.main_service.exception.NotFoundException;
 
@@ -26,7 +25,7 @@ import java.util.stream.Collectors;
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
-//    private final EventRepository eventRepository;
+    //    private final EventRepository eventRepository;
     private final CategoryMapper categoryMapper;
 
     @Override
@@ -78,9 +77,7 @@ public class CategoryServiceImpl implements CategoryService {
         Pageable pageable = PageRequest.of(from / size, size);
         List<Category> categories = categoryRepository.findAll(pageable).getContent();
 
-        return categories.stream()
-                .map(categoryMapper::toCategoryDto)
-                .collect(Collectors.toList());
+        return categories.stream().map(categoryMapper::toCategoryDto).collect(Collectors.toList());
     }
 
     @Override
@@ -90,8 +87,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     private Category getCategoryByIdOrThrow(Long catId) {
-        return categoryRepository.findById(catId)
-                .orElseThrow(() -> new NotFoundException("Категория с id=" + catId + " не найдена"));
+        return categoryRepository.findById(catId).orElseThrow(() -> new NotFoundException("Категория с id=" + catId + " не найдена"));
     }
 
 }

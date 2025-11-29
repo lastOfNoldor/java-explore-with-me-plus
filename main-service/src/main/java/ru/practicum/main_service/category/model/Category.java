@@ -1,8 +1,7 @@
 package ru.practicum.main_service.category.model;
 
-import lombok.*;
-
 import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
 @Table(name = "categories")

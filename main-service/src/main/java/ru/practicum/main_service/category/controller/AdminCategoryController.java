@@ -1,5 +1,7 @@
 package ru.practicum.main_service.category.controller;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -8,9 +10,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.main_service.category.dto.CategoryDto;
 import ru.practicum.main_service.category.dto.NewCategoryDto;
 import ru.practicum.main_service.category.service.CategoryService;
-
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Positive;
 
 @Slf4j
 @RestController
@@ -36,9 +35,7 @@ public class AdminCategoryController {
     }
 
     @PatchMapping("/{catId}")
-    public CategoryDto updateCategory(
-            @PathVariable @Positive Long catId,
-            @Valid @RequestBody CategoryDto categoryDto) {
+    public CategoryDto updateCategory(@PathVariable @Positive Long catId, @Valid @RequestBody CategoryDto categoryDto) {
         log.info("Администратор обновляет категорию с id: {}", catId);
         return categoryService.updateCategory(catId, categoryDto);
     }

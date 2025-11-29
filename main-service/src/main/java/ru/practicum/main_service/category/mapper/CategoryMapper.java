@@ -9,16 +9,11 @@ import ru.practicum.main_service.category.model.Category;
 public class CategoryMapper {
 
     public Category toCategory(NewCategoryDto newCategoryDto) {
-        return Category.builder()
-                .name(newCategoryDto.getName())
-                .build();
+        return Category.builder().name(newCategoryDto.getName()).build();
     }
 
     public Category toCategory(CategoryDto categoryDto) {
-        return Category.builder()
-                .id(categoryDto.getId())
-                .name(categoryDto.getName())
-                .build();
+        return Category.builder().id(categoryDto.getId()).name(categoryDto.getName()).build();
     }
 
     public CategoryDto toCategoryDto(Category category) {

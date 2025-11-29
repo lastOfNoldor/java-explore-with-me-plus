@@ -15,9 +15,6 @@ public class StatClientConfig {
     @Bean
     @ConditionalOnMissingBean
     public RestClient restClient() {
-        return RestClient.builder()
-                .baseUrl(statServerUrl)
-                .defaultHeader("Content-Type", "application/json")
-                .build();
+        return RestClient.builder().baseUrl(statServerUrl).defaultHeader("Content-Type", "application/json").build();
     }
 }

@@ -45,9 +45,7 @@ public class UserServiceImpl implements UserService {
             users = userRepository.findByIdIn(ids, pageable);
         }
 
-        return users.stream()
-                .map(userMapper::toUserDto)
-                .collect(Collectors.toList());
+        return users.stream().map(userMapper::toUserDto).collect(Collectors.toList());
     }
 
     @Override

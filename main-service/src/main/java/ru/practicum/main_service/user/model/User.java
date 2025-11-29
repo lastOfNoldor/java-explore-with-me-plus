@@ -1,8 +1,7 @@
 package ru.practicum.main_service.user.model;
 
-import lombok.*;
-
 import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
 @Table(name = "users")

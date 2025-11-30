@@ -11,15 +11,13 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class User {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name", nullable = false, length = 250)
+    @Column(nullable = false, length = 250)
     private String name;
 
-    @Column(name = "email", nullable = false, unique = true, length = 254)
+    @Column(nullable = false, unique = true, length = 254)
     private String email;
-
 }

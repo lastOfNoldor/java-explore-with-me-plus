@@ -1,9 +1,6 @@
 package ru.practicum.main_service.event.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import ru.practicum.main_service.category.dto.CategoryDto;
 import ru.practicum.main_service.event.model.EventState;
 import ru.practicum.main_service.event.model.Location;
@@ -19,7 +16,7 @@ public class EventFullDto {
     private Long id;
     private String annotation;
     private CategoryDto category;
-    private Long confirmedRequests;
+    private Long confirmedRequests = 0L;
     private LocalDateTime createdOn;
     private String description;
     private LocalDateTime eventDate;
@@ -31,5 +28,5 @@ public class EventFullDto {
     private Boolean requestModeration;
     private EventState state;
     private String title;
-    private Long views;
+    private Long views = 0L;
 }

@@ -50,6 +50,4 @@ public class Event {
     // Эти поля НЕ должны быть в Entity - вычисляются
     // private Long confirmedRequests;
     // private Long views;
-    // createdOn; ставится в сервисе
-    // paid  ставится в сервисе
 }

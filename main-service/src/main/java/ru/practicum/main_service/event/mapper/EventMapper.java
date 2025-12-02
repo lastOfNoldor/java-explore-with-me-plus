@@ -1,7 +1,6 @@
 package ru.practicum.main_service.event.mapper;
 
 import org.mapstruct.*;
-import org.springframework.stereotype.Component;
 import ru.practicum.main_service.category.dto.CategoryDto;
 import ru.practicum.main_service.category.mapper.CategoryMapper;
 import ru.practicum.main_service.category.model.Category;
@@ -22,29 +21,18 @@ public interface EventMapper {
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEventFromRequest(UpdateEventRequest request, @MappingTarget Event event);
 
-    public Event toEvent(NewEventDto newEventDto, Category category, User initiator) {
-        return Event.builder()
-                .annotation(newEventDto.getAnnotation())
-                .category(category)
-                .description(newEventDto.getDescription())
-                .eventDate(newEventDto.getEventDate())
-                .initiator(initiator)
-                .location(newEventDto.getLocation())
-                .paid(newEventDto.getPaid())
-                .participantLimit(newEventDto.getParticipantLimit())
-                .requestModeration(newEventDto.getRequestModeration())
-                .title(newEventDto.getTitle())
-                .build();
-    }
-
-    @Mapping(target = "confirmedRequests", ignore = true)
-    @Mapping(target = "views", ignore = true)
     EventFullDto toEventFullDto(Event event);
+
 
     default EventFullDto toEventFullDto(Event event, Long confirmedRequests, Long views) {
         EventFullDto dto = toEventFullDto(event);
-        dto.setConfirmedRequests(confirmedRequests);
-        dto.setViews(views);
+        // Устанавливаем только если значения не null
+        if (confirmedRequests != null) {
+            dto.setConfirmedRequests(confirmedRequests);
+        }
+        if (views != null) {
+            dto.setViews(views);
+        }
         return dto;
     }
 
@@ -59,6 +47,21 @@ public interface EventMapper {
                 .paid(event.getPaid())
                 .title(event.getTitle())
                 .views(event.getViews())
+                .build();
+    }
+
+    Event toEvent(NewEventDto newEventDto, Category category, User initiator) {
+        return Event.builder()
+                .annotation(newEventDto.getAnnotation())
+                .category(category)
+                .description(newEventDto.getDescription())
+                .eventDate(newEventDto.getEventDate())
+                .initiator(initiator)
+                .location(newEventDto.getLocation())
+                .paid(newEventDto.getPaid())
+                .participantLimit(newEventDto.getParticipantLimit())
+                .requestModeration(newEventDto.getRequestModeration())
+                .title(newEventDto.getTitle())
                 .build();
     }
 

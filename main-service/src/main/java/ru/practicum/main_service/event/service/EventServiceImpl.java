@@ -22,6 +22,7 @@ import ru.practicum.main_service.user.model.User;
 import ru.practicum.main_service.user.repository.UserRepository;
 import ru.practicum.stat_client.StatClient;
 import ru.practicum.stat_dto.EndpointHitDto;
+import ru.practicum.stat_dto.ViewStatsDto;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -70,7 +71,31 @@ public class EventServiceImpl implements EventService {
         Event savedEvent = eventRepository.save(event);
         log.info("Создано новое событие с id: {}", savedEvent.getId());
 
-        return eventMapper.toEventFullDto(savedEvent, 0L, 0L);
+        return eventMapper.toEventFullDto(savedEvent);
+    }
+
+    private Long getEventRequests(Event event) {
+        return requestRepository.countByEventIdAndStatus(event.getId(), RequestStatus.CONFIRMED);
+    }
+
+    private Long getEventViews(Event event) {
+        List<ViewStatsDto> stats = statClient.getStats(
+                event.getCreatedOn(),
+                LocalDateTime.now(),
+                List.of("/events/" + event.getId()),
+                false
+        );
+
+        Long views = 0L;
+        if (!stats.isEmpty()) {
+            for (ViewStatsDto stat : stats) {
+                if (stat.getUri().equals("/events/" + event.getId())) {
+                    views = stat.getHits();
+                    break;
+                }
+            }
+        }
+        return views;
     }
 
     @Override
@@ -78,9 +103,9 @@ public class EventServiceImpl implements EventService {
         getUserById(userId);
         Event event = eventRepository.findByIdAndInitiatorId(eventId, userId)
                 .orElseThrow(() -> new NotFoundException("Событие с id=" + eventId + " не найдено"));
-
         return eventMapper.toEventFullDto(event);
     }
+
 
     @Override
     @Transactional

@@ -75,7 +75,7 @@ public class EventServiceImpl implements EventService {
     }
 
     private Long getEventRequests(Event event) {
-        return requestRepository.countByEventIdAndStatus(event.getId(), RequestStatus.CONFIRMED);
+        return 0L; // requestRepository.countByEventIdAndStatus(event.getId(), RequestStatus.CONFIRMED);
     }
 
     private Long getEventViews(Event event) {
@@ -103,7 +103,9 @@ public class EventServiceImpl implements EventService {
         getUserById(userId);
         Event event = eventRepository.findByIdAndInitiatorId(eventId, userId)
                 .orElseThrow(() -> new NotFoundException("Событие с id=" + eventId + " не найдено"));
-        return eventMapper.toEventFullDto(event);
+        Long views = getEventViews(event);
+        Long eventRequests = getEventRequests(event);
+        return eventMapper.toEventFullDto(event,eventRequests,views);
     }
 
 
@@ -140,8 +142,9 @@ public class EventServiceImpl implements EventService {
 
         Event updatedEvent = eventRepository.save(event);
         log.info("Обновлено событие с id: {}", eventId);
-
-        return eventMapper.toEventFullDto(updatedEvent);
+        Long views = getEventViews(updatedEvent);
+        Long eventRequests = getEventRequests(updatedEvent);
+        return eventMapper.toEventFullDto(updatedEvent,eventRequests,views);
     }
 
     @Override
@@ -180,8 +183,9 @@ public class EventServiceImpl implements EventService {
 
         Event updatedEvent = eventRepository.save(event);
         log.info("Администратором обновлено событие с id: {}", eventId);
-
-        return eventMapper.toEventFullDto(updatedEvent);
+        Long views = getEventViews(updatedEvent);
+        Long eventRequests = getEventRequests(event);
+        return eventMapper.toEventFullDto(updatedEvent,eventRequests,views);
     }
 
     @Override
@@ -253,11 +257,11 @@ public class EventServiceImpl implements EventService {
         if (event.getState() != EventState.PUBLISHED) {
             throw new NotFoundException("Событие с id=" + eventId + " не опубликовано");
         }
-
-        // Отправка статистики
+        Long eventRequests = getEventRequests(event);
+        Long views = getEventViews(event);
         sendStats(request);
 
-        return eventMapper.toEventFullDto(event);
+        return eventMapper.toEventFullDto(event, eventRequests,views);
     }
 
     private User getUserById(Long userId) {

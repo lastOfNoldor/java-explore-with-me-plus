@@ -26,7 +26,6 @@ public interface EventMapper {
 
     default EventFullDto toEventFullDto(Event event, Long confirmedRequests, Long views) {
         EventFullDto dto = toEventFullDto(event);
-        // Устанавливаем только если значения не null
         if (confirmedRequests != null) {
             dto.setConfirmedRequests(confirmedRequests);
         }
@@ -36,34 +35,22 @@ public interface EventMapper {
         return dto;
     }
 
-    public EventShortDto toEventShortDto(Event event) {
-        return EventShortDto.builder()
-                .id(event.getId())
-                .annotation(event.getAnnotation())
-                .category(toCategoryDto(event.getCategory()))
-                .confirmedRequests(event.getConfirmedRequests())
-                .eventDate(event.getEventDate())
-                .initiator(toUserShortDto(event.getInitiator()))
-                .paid(event.getPaid())
-                .title(event.getTitle())
-                .views(event.getViews())
-                .build();
+    EventShortDto toEventShortDto(Event event);
+
+    default EventShortDto toEventShortDto(Event event, Long confirmedRequests, Long views) {
+        EventShortDto dto = toEventShortDto(event);
+        if (confirmedRequests != null) {
+            dto.setConfirmedRequests(confirmedRequests);
+        }
+        if (views != null) {
+            dto.setViews(views);
+        }
+        return dto;
     }
 
-    Event toEvent(NewEventDto newEventDto, Category category, User initiator) {
-        return Event.builder()
-                .annotation(newEventDto.getAnnotation())
-                .category(category)
-                .description(newEventDto.getDescription())
-                .eventDate(newEventDto.getEventDate())
-                .initiator(initiator)
-                .location(newEventDto.getLocation())
-                .paid(newEventDto.getPaid())
-                .participantLimit(newEventDto.getParticipantLimit())
-                .requestModeration(newEventDto.getRequestModeration())
-                .title(newEventDto.getTitle())
-                .build();
-    }
+    @Mapping(target = "category", source = "category")
+    @Mapping(target = "initiator", source = "initiator")
+    Event toEvent(NewEventDto newEventDto, Category category, User initiator);
 
 
     public CategoryDto toCategoryDto(Category category) {

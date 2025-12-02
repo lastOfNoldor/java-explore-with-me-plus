@@ -20,13 +20,16 @@ import ru.practicum.main_service.exception.NotFoundException;
 import ru.practicum.main_service.exception.ValidationException;
 import ru.practicum.main_service.user.model.User;
 import ru.practicum.main_service.user.repository.UserRepository;
+import ru.practicum.main_service.user.service.UserService;
 import ru.practicum.stat_client.StatClient;
 import ru.practicum.stat_dto.EndpointHitDto;
 import ru.practicum.stat_dto.ViewStatsDto;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -42,17 +45,75 @@ public class EventServiceImpl implements EventService {
     private final CategoryRepository categoryRepository;
     private final EventMapper eventMapper;
     private final StatClient statClient;
+    private final UserService userService;
 
     @Override
     public List<EventShortDto> getEventsByUser(Long userId, Integer from, Integer size) {
-        User user = getUserById(userId);
+        getUserById(userId);
         Pageable pageable = PageRequest.of(from / size, size, Sort.by("id").ascending());
         List<Event> events = eventRepository.findByInitiatorId(userId, pageable);
+        if (events.isEmpty()) {
+            return Collections.emptyList();
+        }
+        Map<Long, Long> confirmedRequestsMap = getConfirmedRequestsBatch(events);
+        Map<Long, Long> viewsMap = getEventsViewsBatch(events);
 
         return events.stream()
-                .map(eventMapper::toEventShortDto)
+                .map(event -> {
+                    Long confirmedRequests = confirmedRequestsMap.getOrDefault(event.getId(), 0L);
+                    Long views = viewsMap.getOrDefault(event.getId(), 0L);
+                    return eventMapper.toEventShortDto(event, confirmedRequests, views);
+                })
                 .collect(Collectors.toList());
     }
+
+    private Map<Long, Long> getConfirmedRequestsBatch(List<Event> events) {
+        // Собираем ID всех событий
+        List<Long> eventIds = events.stream()
+                .map(Event::getId)
+                .collect(Collectors.toList());
+
+        // Возвращает List<Object[]> где каждый Object[] = [eventId, count]
+        List<Object[]> results = requestRepository
+                .countConfirmedRequestsByEventIds(eventIds, RequestStatus.CONFIRMED);
+
+        // Преобразуем Object[] в Map
+        return results.stream()
+                .collect(Collectors.toMap(
+                        result -> (Long) result[0],   // eventId из Object[0]
+                        result -> (Long) result[1]    // count из Object[1]
+                ));
+    }
+
+    private Map<Long, Long> getEventsViewsBatch(List<Event> events) {
+        List<String> uris = events.stream()
+                .map(event -> "/events/" + event.getId())
+                .collect(Collectors.toList());
+
+        LocalDateTime earliestCreated = events.stream()
+                .map(Event::getCreatedOn)
+                .min(LocalDateTime::compareTo)
+                .orElse(LocalDateTime.now().minusYears(1));
+
+        List<ViewStatsDto> stats = statClient.getStats(
+                earliestCreated,
+                LocalDateTime.now(),
+                uris,
+                false
+        );
+        return stats.stream()
+                .collect(Collectors.toMap(
+                        stat -> extractEventIdFromUri(stat.getUri()), // извлекаем ID из URI
+                        ViewStatsDto::getHits
+                ));
+    }
+
+    private Long extractEventIdFromUri(String uri) {
+        String[] parts = uri.split("/");
+        return Long.parseLong(parts[parts.length - 1]);
+    }
+
+
 
     @Override
     @Transactional
@@ -192,15 +253,22 @@ public class EventServiceImpl implements EventService {
     public List<EventFullDto> getEventsByAdmin(List<Long> users, List<EventState> states,
                                                List<Long> categories, LocalDateTime rangeStart,
                                                LocalDateTime rangeEnd, Integer from, Integer size) {
-        if (rangeStart == null) rangeStart = LocalDateTime.now().minusYears(100);
-        if (rangeEnd == null) rangeEnd = LocalDateTime.now().plusYears(100);
-
+        timeRangeValidation(rangeStart,rangeEnd);
         Pageable pageable = PageRequest.of(from / size, size, Sort.by("id").ascending());
         List<Event> events = eventRepository.findEventsByAdmin(users, states, categories,
                 rangeStart, rangeEnd, pageable);
+        if (events.isEmpty()) {
+            return Collections.emptyList();
+        }
+        Map<Long, Long> confirmedRequestsMap = getConfirmedRequestsBatch(events);
+        Map<Long, Long> viewsMap = getEventsViewsBatch(events);
 
         return events.stream()
-                .map(eventMapper::toEventFullDto)
+                .map(event -> {
+                    Long confirmedRequests = confirmedRequestsMap.getOrDefault(event.getId(), 0L);
+                    Long views = viewsMap.getOrDefault(event.getId(), 0L);
+                    return eventMapper.toEventFullDto(event, confirmedRequests, views);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -209,28 +277,35 @@ public class EventServiceImpl implements EventService {
                                                LocalDateTime rangeStart, LocalDateTime rangeEnd,
                                                Boolean onlyAvailable, String sort,
                                                Integer from, Integer size, HttpServletRequest request) {
-        if (rangeStart == null) rangeStart = LocalDateTime.now();
-        if (rangeEnd == null) rangeEnd = LocalDateTime.now().plusYears(100);
-
-        if (rangeStart.isAfter(rangeEnd)) {
-            throw new ValidationException("Начальная дата не может быть позже конечной");
-        }
-
+        timeRangeValidation(rangeStart,rangeEnd);
         Sort sorting = Sort.by("eventDate").ascending();
         if ("views".equals(sort)) {
             sorting = Sort.by("views").descending();
         }
-
         Pageable pageable = PageRequest.of(from / size, size, sorting);
         List<Event> events = eventRepository.findEventsPublic(text, categories, paid,
                 rangeStart, rangeEnd, pageable);
-
-        // Отправка статистики
+        if (events.isEmpty()) {
+            return Collections.emptyList();
+        }
+        Map<Long, Long> confirmedRequestsMap = getConfirmedRequestsBatch(events);
+        Map<Long, Long> viewsMap = getEventsViewsBatch(events);
         sendStats(request);
-
         return events.stream()
-                .map(eventMapper::toEventShortDto)
+                .map(event -> {
+                    Long confirmedRequests = confirmedRequestsMap.getOrDefault(event.getId(), 0L);
+                    Long views = viewsMap.getOrDefault(event.getId(), 0L);
+                    return eventMapper.toEventShortDto(event, confirmedRequests, views);
+                })
                 .collect(Collectors.toList());
+    }
+
+    private void timeRangeValidation(LocalDateTime rangeStart, LocalDateTime rangeEnd) {
+        if (rangeStart == null) rangeStart = LocalDateTime.now();
+        if (rangeEnd == null) rangeEnd = LocalDateTime.now().plusYears(100);
+        if (rangeStart.isAfter(rangeEnd)) {
+            throw new ValidationException("Начальная дата не может быть позже конечной");
+        }
     }
 
     private void sendStats(HttpServletRequest request) {
@@ -265,10 +340,9 @@ public class EventServiceImpl implements EventService {
     }
 
     private User getUserById(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь с id=" + userId + " не найден"));
+        return userService.getById(userId);
     }
-    //todo переписать этот и нижний методы с использованием сервиса
+    //todo пнижний метод с использованием сервиса
 
     private Category getCategoryById(Long categoryId) {
         return categoryRepository.findById(categoryId)

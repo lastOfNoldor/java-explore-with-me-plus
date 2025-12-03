@@ -1,33 +1,27 @@
 package ru.practicum.main_service.event.service;
 
-import ru.practicum.main_service.event.dto.*;
-
-
 import jakarta.servlet.http.HttpServletRequest;
-import ru.practicum.main_service.event.model.EventState;
+import ru.practicum.main_service.event.dto.EventFullDto;
+import ru.practicum.main_service.event.dto.EventShortDto;
+import ru.practicum.main_service.event.dto.NewEventDto;
+import ru.practicum.main_service.event.dto.param.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 public interface EventService {
-    List<EventShortDto> getEventsByUser(Long userId, Integer from, Integer size);
+    List<EventShortDto> getEventsByUser(EventsByUserParams params);
 
     EventFullDto createEvent(Long userId, NewEventDto newEventDto);
 
-    EventFullDto getEventByUser(Long userId, Long eventId);
+    EventFullDto getEventByUser(EventByUserRequest request);
 
-    EventFullDto updateEventByUser(Long userId, Long eventId, UpdateEventRequest updateEvent);
+    EventFullDto updateEventByUser(EventByUserRequest request, UpdateEventRequest updateEvent);
 
-    List<EventFullDto> getEventsByAdmin(List<Long> users, List<EventState> states,
-                                        List<Long> categories, LocalDateTime rangeStart,
-                                        LocalDateTime rangeEnd, Integer from, Integer size);
+    List<EventFullDto> getEventsByAdmin(EventsByAdminParams params);
 
     EventFullDto updateEventByAdmin(Long eventId, UpdateEventRequest updateEvent);
 
-    List<EventShortDto> getEventsPublic(String text, List<Long> categories, Boolean paid,
-                                        LocalDateTime rangeStart, LocalDateTime rangeEnd,
-                                        Boolean onlyAvailable, String sort,
-                                        Integer from, Integer size, HttpServletRequest request);
+    List<EventShortDto> getEventsPublic(EventsPublicParams params);
 
     EventFullDto getEventPublic(Long eventId, HttpServletRequest request);
 }

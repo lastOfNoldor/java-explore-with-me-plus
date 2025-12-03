@@ -47,7 +47,5 @@ public class Event {
     @Embedded
     private Location location;
 
-    // Эти поля НЕ должны быть в Entity - вычисляются
-    // private Long confirmedRequests;
-    // private Long views;
+
 }

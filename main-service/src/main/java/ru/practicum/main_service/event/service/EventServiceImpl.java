@@ -9,9 +9,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.main_service.category.model.Category;
-import ru.practicum.main_service.category.repository.CategoryRepository;
 import ru.practicum.main_service.category.service.CategoryService;
-import ru.practicum.main_service.event.dto.*;
+import ru.practicum.main_service.event.dto.EventFullDto;
+import ru.practicum.main_service.event.dto.EventShortDto;
+import ru.practicum.main_service.event.dto.NewEventDto;
+import ru.practicum.main_service.event.dto.param.*;
 import ru.practicum.main_service.event.mapper.EventMapper;
 import ru.practicum.main_service.event.model.Event;
 import ru.practicum.main_service.event.model.EventState;
@@ -43,14 +45,16 @@ public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
     private final CategoryService categoryService;
-    private final CategoryRepository categoryRepository;
     private final EventMapper eventMapper;
     private final StatClient statClient;
     private final UserService userService;
 
     @Override
-    public List<EventShortDto> getEventsByUser(Long userId, Integer from, Integer size) {
+    public List<EventShortDto> getEventsByUser(EventsByUserParams params) {
+        Long userId = params.getUserId();
         getUserById(userId);
+        int from = params.getFrom();
+        int size = params.getSize();
         Pageable pageable = PageRequest.of(from / size, size, Sort.by("id").ascending());
         List<Event> events = eventRepository.findByInitiatorId(userId, pageable);
         if (events.isEmpty()) {
@@ -69,20 +73,16 @@ public class EventServiceImpl implements EventService {
     }
 
     private Map<Long, Long> getConfirmedRequestsBatch(List<Event> events) {
-        // Собираем ID всех событий
         List<Long> eventIds = events.stream()
                 .map(Event::getId)
                 .collect(Collectors.toList());
 
-        // Возвращает List<Object[]> где каждый Object[] = [eventId, count]
-        List<Object[]> results = requestRepository
-                .countConfirmedRequestsByEventIds(eventIds, RequestStatus.CONFIRMED);
+        List<Object[]> results = requestRepository.countConfirmedRequestsByEventIds(eventIds, RequestStatus.CONFIRMED);
 
-        // Преобразуем Object[] в Map
         return results.stream()
                 .collect(Collectors.toMap(
-                        result -> (Long) result[0],   // eventId из Object[0]
-                        result -> (Long) result[1]    // count из Object[1]
+                        result -> (Long) result[0],
+                        result -> (Long) result[1]
                 ));
     }
 
@@ -104,7 +104,7 @@ public class EventServiceImpl implements EventService {
         );
         return stats.stream()
                 .collect(Collectors.toMap(
-                        stat -> extractEventIdFromUri(stat.getUri()), // извлекаем ID из URI
+                        stat -> extractEventIdFromUri(stat.getUri()),
                         ViewStatsDto::getHits
                 ));
     }
@@ -159,7 +159,9 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public EventFullDto getEventByUser(Long userId, Long eventId) {
+    public EventFullDto getEventByUser(EventByUserRequest request) {
+        Long userId = request.getUserId();
+        Long eventId = request.getEventId();
         getUserById(userId);
         Event event = eventRepository.findByIdAndInitiatorId(eventId, userId)
                 .orElseThrow(() -> new NotFoundException("Событие с id=" + eventId + " не найдено"));
@@ -171,7 +173,9 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional
-    public EventFullDto updateEventByUser(Long userId, Long eventId, UpdateEventRequest updateEvent) {
+    public EventFullDto updateEventByUser(EventByUserRequest request, UpdateEventRequest updateEvent) {
+        Long userId = request.getUserId();
+        Long eventId = request.getEventId();
         getUserById(userId);
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Событие с id=" + eventId + " не найдено"));
@@ -249,11 +253,17 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public List<EventFullDto> getEventsByAdmin(List<Long> users, List<EventState> states,
-                                               List<Long> categories, LocalDateTime rangeStart,
-                                               LocalDateTime rangeEnd, Integer from, Integer size) {
-        timeRangeValidation(rangeStart,rangeEnd);
+    public List<EventFullDto> getEventsByAdmin(EventsByAdminParams params) {
+        LocalDateTime rangeStart = params.getRangeStart();
+        LocalDateTime rangeEnd = params.getRangeEnd();
+        timeRangeValidation(rangeStart, rangeEnd);
+        int from = params.getFrom();
+        int size = params.getSize();
         Pageable pageable = PageRequest.of(from / size, size, Sort.by("id").ascending());
+        List<Long> users = params.getUsers();
+        List<EventState> states = params.getStates();
+        List<Long> categories = params.getCategories();
+
         List<Event> events = eventRepository.findEventsByAdmin(users, states, categories,
                 rangeStart, rangeEnd, pageable);
         if (events.isEmpty()) {
@@ -271,95 +281,28 @@ public class EventServiceImpl implements EventService {
                 .collect(Collectors.toList());
     }
 
+
     @Override
-    public List<EventFullDto> getEventsByAdmin2(List<Long> users, List<EventState> states,
-                                               List<Long> categories, LocalDateTime rangeStart,
-                                               LocalDateTime rangeEnd, Integer from, Integer size) {
+    public List<EventShortDto> getEventsPublic(EventsPublicParams params) {
+        LocalDateTime rangeStart = params.getRangeStart();
+        LocalDateTime rangeEnd = params.getRangeEnd();
         timeRangeValidation(rangeStart, rangeEnd);
-
-        Pageable pageable = PageRequest.of(from / size, size, Sort.by("id").ascending());
-
-        // Используем QueryDSL
-        List<Event> events = eventRepository.findEventsByAdmin(users, states, categories,
-                rangeStart, rangeEnd, pageable);
-
-        if (events.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        Map<Long, Long> confirmedRequestsMap = getConfirmedRequestsBatch(events);
-        Map<Long, Long> viewsMap = getEventsViewsBatch(events);
-
-        return events.stream()
-                .map(event -> {
-                    Long confirmedRequests = confirmedRequestsMap.getOrDefault(event.getId(), 0L);
-                    Long views = viewsMap.getOrDefault(event.getId(), 0L);
-                    return eventMapper.toEventFullDto(event, confirmedRequests, views);
-                })
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<EventShortDto> getEventsPublic(String text, List<Long> categories, Boolean paid,
-                                               LocalDateTime rangeStart, LocalDateTime rangeEnd,
-                                               Boolean onlyAvailable, String sort,
-                                               Integer from, Integer size, HttpServletRequest request) {
-        timeRangeValidation(rangeStart,rangeEnd);
+        int from = params.getFrom();
+        int size = params.getSize();
+        String text = params.getText();
+        Boolean paid = params.getPaid();
+        Boolean onlyAvailable = params.getOnlyAvailable();
+        List<Long> categories = params.getCategories();
         Sort sorting = Sort.by("eventDate").ascending();
-        if ("views".equals(sort)) {
-            sorting = Sort.by("views").descending();
-        }
         Pageable pageable = PageRequest.of(from / size, size, sorting);
-        List<Event> events = eventRepository.findEventsPublic(text, categories, paid,
-                rangeStart, rangeEnd, pageable);
-        if (events.isEmpty()) {
-            return Collections.emptyList();
-        }
-        Map<Long, Long> confirmedRequestsMap = getConfirmedRequestsBatch(events);
-        Map<Long, Long> viewsMap = getEventsViewsBatch(events);
-        sendStats(request);
-        return events.stream()
-                .map(event -> {
-                    Long confirmedRequests = confirmedRequestsMap.getOrDefault(event.getId(), 0L);
-                    Long views = viewsMap.getOrDefault(event.getId(), 0L);
-                    return eventMapper.toEventShortDto(event, confirmedRequests, views);
-                })
-                .collect(Collectors.toList());
-    }
-
-    private void timeRangeValidation(LocalDateTime rangeStart, LocalDateTime rangeEnd) {
-        if (rangeStart == null) rangeStart = LocalDateTime.now();
-        if (rangeEnd == null) rangeEnd = LocalDateTime.now().plusYears(100);
-        if (rangeStart.isAfter(rangeEnd)) {
-            throw new ValidationException("Начальная дата не может быть позже конечной");
-        }
-    }
-
-    @Override
-    public List<EventShortDto> getEventsPublic2(String text, List<Long> categories, Boolean paid,
-                                               LocalDateTime rangeStart, LocalDateTime rangeEnd,
-                                               Boolean onlyAvailable, String sort,
-                                               Integer from, Integer size, HttpServletRequest request) {
-        timeRangeValidation(rangeStart, rangeEnd);
-
-        // Создаем сортировку
-        Sort sorting = Sort.by("eventDate").ascending();
-
-
-        Pageable pageable = PageRequest.of(from / size, size, sorting);
-
-        // Используем QueryDSL
         List<Event> events = eventRepository.findEventsPublic(text, categories, paid,
                 rangeStart, rangeEnd, onlyAvailable, pageable);
-
         if (events.isEmpty()) {
             return Collections.emptyList();
         }
 
         Map<Long, Long> confirmedRequestsMap = getConfirmedRequestsBatch(events);
         Map<Long, Long> viewsMap = getEventsViewsBatch(events);
-
-        sendStats(request);
 
         List<EventShortDto> result = events.stream()
                 .map(event -> {
@@ -368,12 +311,21 @@ public class EventServiceImpl implements EventService {
                     return eventMapper.toEventShortDto(event, confirmedRequests, views);
                 })
                 .collect(Collectors.toList());
-
+        String sort = params.getSort();
         if ("views".equals(sort)) {
             result.sort(Comparator.comparing(EventShortDto::getViews).reversed());
         }
-
+        HttpServletRequest request = params.getRequest();
+        sendStats(request);
         return result;
+    }
+
+    private void timeRangeValidation(LocalDateTime rangeStart, LocalDateTime rangeEnd) {
+        if (rangeStart == null) rangeStart = LocalDateTime.now();
+        if (rangeEnd == null) rangeEnd = LocalDateTime.now().plusYears(100);
+        if (rangeStart.isAfter(rangeEnd)) {
+            throw new ValidationException("Начальная дата не может быть позже конечной");
+        }
     }
 
     private void sendStats(HttpServletRequest request) {

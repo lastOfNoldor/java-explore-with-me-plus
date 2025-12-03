@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.main_service.event.dto.EventFullDto;
 import ru.practicum.main_service.event.dto.EventShortDto;
+import ru.practicum.main_service.event.dto.param.EventsPublicParams;
 import ru.practicum.main_service.event.service.EventService;
 
 import java.time.LocalDateTime;
@@ -40,8 +41,8 @@ public class PublicEventController {
                                                @Positive @RequestParam(defaultValue = "10") Integer size,
                                                HttpServletRequest request) {
         log.info("Публичный запрос событий");
-        return eventService.getEventsPublic(text, categories, paid, rangeStart, rangeEnd,
-                onlyAvailable, sort, from, size, request);
+        return eventService.getEventsPublic(new EventsPublicParams(text, categories, paid, rangeStart, rangeEnd,
+                onlyAvailable, sort, from, size, request));
     }
 
     @GetMapping("/events/{id}")

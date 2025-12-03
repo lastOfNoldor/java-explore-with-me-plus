@@ -46,7 +46,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     public void deleteCategory(Long catId) {
-        Category category = getCategoryByIdOrThrow(catId);
+        Category category = getEntityById(catId);
 
 //        if (eventRepository.existsByCategoryId(catId)) {
 //            throw new ConflictException("Невозможно удалить категорию: существуют связанные события");
@@ -59,7 +59,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     public CategoryDto updateCategory(Long catId, CategoryDto categoryDto) {
-        Category category = getCategoryByIdOrThrow(catId);
+        Category category = getEntityById(catId);
 
         if (categoryRepository.existsByNameAndIdNot(categoryDto.getName(), catId)) {
             throw new ConflictException("Категория с именем '" + categoryDto.getName() + "' уже существует");
@@ -82,11 +82,11 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryDto getCategoryById(Long catId) {
-        Category category = getCategoryByIdOrThrow(catId);
+        Category category = getEntityById(catId);
         return categoryMapper.toCategoryDto(category);
     }
 
-    private Category getCategoryByIdOrThrow(Long catId) {
+    public Category getEntityById(Long catId) {
         return categoryRepository.findById(catId).orElseThrow(() -> new NotFoundException("Категория с id=" + catId + " не найдена"));
     }
 

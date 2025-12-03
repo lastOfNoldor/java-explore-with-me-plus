@@ -10,19 +10,22 @@ import ru.practicum.main_service.event.dto.NewEventDto;
 import ru.practicum.main_service.event.dto.UpdateEventRequest;
 import ru.practicum.main_service.event.model.Event;
 
+import ru.practicum.main_service.event.model.EventState;
 import ru.practicum.main_service.user.dto.UserShortDto;
 import ru.practicum.main_service.user.mapper.UserMapper;
 import ru.practicum.main_service.user.model.User;
 
+import java.time.LocalDateTime;
+
 @Mapper(componentModel = "spring",
-        uses = {CategoryMapper.class, UserMapper.class})
+        uses = {CategoryMapper.class, UserMapper.class},
+        imports = {LocalDateTime.class, EventState.class})
 public interface EventMapper {
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEventFromRequest(UpdateEventRequest request, @MappingTarget Event event);
 
     EventFullDto toEventFullDto(Event event);
-
 
     default EventFullDto toEventFullDto(Event event, Long confirmedRequests, Long views) {
         EventFullDto dto = toEventFullDto(event);
@@ -48,22 +51,8 @@ public interface EventMapper {
         return dto;
     }
 
-    @Mapping(target = "category", source = "category")
-    @Mapping(target = "initiator", source = "initiator")
+    @Mapping(target = "createdOn", expression = "java(LocalDateTime.now())")
+    @Mapping(target = "state", constant = "PENDING")
     Event toEvent(NewEventDto newEventDto, Category category, User initiator);
 
-
-    public CategoryDto toCategoryDto(Category category) {
-        if (category == null) {
-            return null;
-        }
-        return new CategoryDto(category.getId(), category.getName());
-    }
-
-    public UserShortDto toUserShortDto(User user) {
-        if (user == null) {
-            return null;
-        }
-        return new UserShortDto(user.getId(), user.getName());
-    }
 }

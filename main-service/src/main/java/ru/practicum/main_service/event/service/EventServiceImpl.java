@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.main_service.category.model.Category;
 import ru.practicum.main_service.category.repository.CategoryRepository;
+import ru.practicum.main_service.category.service.CategoryService;
 import ru.practicum.main_service.event.dto.*;
 import ru.practicum.main_service.event.mapper.EventMapper;
 import ru.practicum.main_service.event.model.Event;
@@ -19,7 +20,6 @@ import ru.practicum.main_service.event.repository.EventRepository;
 import ru.practicum.main_service.exception.NotFoundException;
 import ru.practicum.main_service.exception.ValidationException;
 import ru.practicum.main_service.user.model.User;
-import ru.practicum.main_service.user.repository.UserRepository;
 import ru.practicum.main_service.user.service.UserService;
 import ru.practicum.stat_client.StatClient;
 import ru.practicum.stat_dto.EndpointHitDto;
@@ -28,6 +28,7 @@ import ru.practicum.stat_dto.ViewStatsDto;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -41,7 +42,7 @@ import java.util.stream.Collectors;
 public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
-    private final UserRepository userRepository;
+    private final CategoryService categoryService;
     private final CategoryRepository categoryRepository;
     private final EventMapper eventMapper;
     private final StatClient statClient;
@@ -126,8 +127,6 @@ public class EventServiceImpl implements EventService {
         }
 
         Event event = eventMapper.toEvent(newEventDto, category, user);
-        event.setCreatedOn(LocalDateTime.now());
-        event.setState(EventState.PENDING);
 
         Event savedEvent = eventRepository.save(event);
         log.info("Создано новое событие с id: {}", savedEvent.getId());
@@ -273,6 +272,34 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    public List<EventFullDto> getEventsByAdmin2(List<Long> users, List<EventState> states,
+                                               List<Long> categories, LocalDateTime rangeStart,
+                                               LocalDateTime rangeEnd, Integer from, Integer size) {
+        timeRangeValidation(rangeStart, rangeEnd);
+
+        Pageable pageable = PageRequest.of(from / size, size, Sort.by("id").ascending());
+
+        // Используем QueryDSL
+        List<Event> events = eventRepository.findEventsByAdmin(users, states, categories,
+                rangeStart, rangeEnd, pageable);
+
+        if (events.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Map<Long, Long> confirmedRequestsMap = getConfirmedRequestsBatch(events);
+        Map<Long, Long> viewsMap = getEventsViewsBatch(events);
+
+        return events.stream()
+                .map(event -> {
+                    Long confirmedRequests = confirmedRequestsMap.getOrDefault(event.getId(), 0L);
+                    Long views = viewsMap.getOrDefault(event.getId(), 0L);
+                    return eventMapper.toEventFullDto(event, confirmedRequests, views);
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<EventShortDto> getEventsPublic(String text, List<Long> categories, Boolean paid,
                                                LocalDateTime rangeStart, LocalDateTime rangeEnd,
                                                Boolean onlyAvailable, String sort,
@@ -308,6 +335,47 @@ public class EventServiceImpl implements EventService {
         }
     }
 
+    @Override
+    public List<EventShortDto> getEventsPublic2(String text, List<Long> categories, Boolean paid,
+                                               LocalDateTime rangeStart, LocalDateTime rangeEnd,
+                                               Boolean onlyAvailable, String sort,
+                                               Integer from, Integer size, HttpServletRequest request) {
+        timeRangeValidation(rangeStart, rangeEnd);
+
+        // Создаем сортировку
+        Sort sorting = Sort.by("eventDate").ascending();
+
+
+        Pageable pageable = PageRequest.of(from / size, size, sorting);
+
+        // Используем QueryDSL
+        List<Event> events = eventRepository.findEventsPublic(text, categories, paid,
+                rangeStart, rangeEnd, onlyAvailable, pageable);
+
+        if (events.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Map<Long, Long> confirmedRequestsMap = getConfirmedRequestsBatch(events);
+        Map<Long, Long> viewsMap = getEventsViewsBatch(events);
+
+        sendStats(request);
+
+        List<EventShortDto> result = events.stream()
+                .map(event -> {
+                    Long confirmedRequests = confirmedRequestsMap.getOrDefault(event.getId(), 0L);
+                    Long views = viewsMap.getOrDefault(event.getId(), 0L);
+                    return eventMapper.toEventShortDto(event, confirmedRequests, views);
+                })
+                .collect(Collectors.toList());
+
+        if ("views".equals(sort)) {
+            result.sort(Comparator.comparing(EventShortDto::getViews).reversed());
+        }
+
+        return result;
+    }
+
     private void sendStats(HttpServletRequest request) {
         final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         try {
@@ -340,13 +408,11 @@ public class EventServiceImpl implements EventService {
     }
 
     private User getUserById(Long userId) {
-        return userService.getById(userId);
+        return userService.getEntityById(userId);
     }
-    //todo пнижний метод с использованием сервиса
 
     private Category getCategoryById(Long categoryId) {
-        return categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new NotFoundException("Категория с id=" + categoryId + " не найдена"));
+        return categoryService.getEntityById(categoryId);
     }
 
     private void updateEventFields(Event event, UpdateEventRequest updateEvent) {

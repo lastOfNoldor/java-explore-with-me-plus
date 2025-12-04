@@ -1,5 +1,6 @@
 package ru.practicum.main_service.event.service;
 
+import com.zaxxer.hikari.util.FastList;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +45,7 @@ import java.util.stream.Collectors;
 public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
+//    private final RequestRepository requestRepository;
     private final CategoryService categoryService;
     private final EventMapper eventMapper;
     private final StatClient statClient;
@@ -51,34 +53,43 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventShortDto> getEventsByUser(EventsByUserParams params) {
+        log.debug("Получение событий пользователя: userId={}, from={}, size={}",
+                params.getUserId(), params.getFrom(), params.getSize());
         Long userId = params.getUserId();
         getUserById(userId);
         int from = params.getFrom();
         int size = params.getSize();
         Pageable pageable = PageRequest.of(from / size, size, Sort.by("id").ascending());
+        log.trace("Пагинация: offset={}, limit={}", pageable.getOffset(), pageable.getPageSize());
         List<Event> events = eventRepository.findByInitiatorId(userId, pageable);
         if (events.isEmpty()) {
+            log.trace("Пользователь userId={} не имеет событий", userId);
             return Collections.emptyList();
         }
         Map<Long, Long> confirmedRequestsMap = getConfirmedRequestsBatch(events);
         Map<Long, Long> viewsMap = getEventsViewsBatch(events);
-
-        return events.stream()
+        log.trace("Статистика собрана: confirmedRequests={} записей, views={} записей",
+                confirmedRequestsMap.size(), viewsMap.size());
+        List<EventShortDto> result = events.stream()
                 .map(event -> {
                     Long confirmedRequests = confirmedRequestsMap.getOrDefault(event.getId(), 0L);
                     Long views = viewsMap.getOrDefault(event.getId(), 0L);
+                    log.trace("Событие пользователя id={}: confirmedRequests={}, views={}",
+                            event.getId(), confirmedRequests, views);
                     return eventMapper.toEventShortDto(event, confirmedRequests, views);
                 })
                 .collect(Collectors.toList());
+        log.debug("Возвращено {} EventShortDto для пользователя userId={}", result.size(), userId);
+        return result;
     }
 
     private Map<Long, Long> getConfirmedRequestsBatch(List<Event> events) {
+        log.trace("Получение подтвержденных запросов для {} событий", events.size());
         List<Long> eventIds = events.stream()
                 .map(Event::getId)
                 .collect(Collectors.toList());
-
         List<Object[]> results = requestRepository.countConfirmedRequestsByEventIds(eventIds, RequestStatus.CONFIRMED);
-
+        log.trace("Получено {} результатов о подтвержденных запросах", results.size());
         return results.stream()
                 .collect(Collectors.toMap(
                         result -> (Long) result[0],
@@ -87,25 +98,28 @@ public class EventServiceImpl implements EventService {
     }
 
     private Map<Long, Long> getEventsViewsBatch(List<Event> events) {
+        log.debug("Получение статистики просмотров для {} событий", events.size());
         List<String> uris = events.stream()
                 .map(event -> "/events/" + event.getId())
                 .collect(Collectors.toList());
-
+        log.trace("Сформировано {} URI для запроса статистики", uris.size());
         LocalDateTime earliestCreated = events.stream()
                 .map(Event::getCreatedOn)
                 .min(LocalDateTime::compareTo)
                 .orElse(LocalDateTime.now().minusYears(1));
-
+        log.trace("Диапазон запроса статистики: с {} по {}", earliestCreated, LocalDateTime.now());
         List<ViewStatsDto> stats = statClient.getStats(
                 earliestCreated,
                 LocalDateTime.now(),
                 uris,
                 false
         );
+        log.debug("Получено {} записей статистики от внешнего сервиса", stats.size());
         return stats.stream()
                 .collect(Collectors.toMap(
                         stat -> extractEventIdFromUri(stat.getUri()),
-                        ViewStatsDto::getHits
+                        ViewStatsDto::getHits,
+                        (existing, replacement) -> existing
                 ));
     }
 
@@ -126,7 +140,7 @@ public class EventServiceImpl implements EventService {
             throw new ValidationException("Дата события должна быть не ранее чем через 2 часа от текущего момента");
         }
 
-        Event event = eventMapper.toEvent(newEventDto, category, user);
+        Event event = eventMapper.toNewEvent(newEventDto, category, user);
 
         Event savedEvent = eventRepository.save(event);
         log.info("Создано новое событие с id: {}", savedEvent.getId());
@@ -254,6 +268,9 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventFullDto> getEventsByAdmin(EventsByAdminParams params) {
+        log.debug("Админский поиск событий: users={}, states={}, categories={}, from={}, size={}",
+                params.getUsers(), params.getStates(), params.getCategories(),
+                params.getFrom(), params.getSize());
         LocalDateTime rangeStart = params.getRangeStart();
         LocalDateTime rangeEnd = params.getRangeEnd();
         timeRangeValidation(rangeStart, rangeEnd);
@@ -263,15 +280,20 @@ public class EventServiceImpl implements EventService {
         List<Long> users = params.getUsers();
         List<EventState> states = params.getStates();
         List<Long> categories = params.getCategories();
+        log.trace("Критерии поиска: users={}, states={}, categories={}, диапазон=[{}, {}]",
+                users, states, categories, rangeStart, rangeEnd);
 
         List<Event> events = eventRepository.findEventsByAdmin(users, states, categories,
                 rangeStart, rangeEnd, pageable);
+        log.debug("Найдено {} событий для администратора", events.size());
         if (events.isEmpty()) {
+            log.trace("События не найдены по указанным критериям");
             return Collections.emptyList();
         }
         Map<Long, Long> confirmedRequestsMap = getConfirmedRequestsBatch(events);
         Map<Long, Long> viewsMap = getEventsViewsBatch(events);
-
+        log.trace("Статистика собрана: requests={} записей, views={} записей",
+                confirmedRequestsMap.size(), viewsMap.size());
         return events.stream()
                 .map(event -> {
                     Long confirmedRequests = confirmedRequestsMap.getOrDefault(event.getId(), 0L);
@@ -284,6 +306,8 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventShortDto> getEventsPublic(EventsPublicParams params) {
+        log.debug("Публичный поиск событий: sort={}, onlyAvailable={}, categories={}",
+                params.getSort(), params.getOnlyAvailable(), params.getCategories());
         LocalDateTime rangeStart = params.getRangeStart();
         LocalDateTime rangeEnd = params.getRangeEnd();
         timeRangeValidation(rangeStart, rangeEnd);
@@ -293,17 +317,78 @@ public class EventServiceImpl implements EventService {
         Boolean paid = params.getPaid();
         Boolean onlyAvailable = params.getOnlyAvailable();
         List<Long> categories = params.getCategories();
+        boolean sortedByViews = "views".equals(params.getSort());
+        List<EventShortDto> result;
+        if(sortedByViews) {
+            log.debug("Сортировка по просмотрам (in-memory)");
+            result = findSortedByViews(from, size, text,categories,paid,rangeStart,rangeEnd,onlyAvailable);
+        } else {
+            log.debug("Сортировка по дате (DB-level)");
+            result = findSortedByDate(from, size, text,categories,paid,rangeStart,rangeEnd,onlyAvailable);
+        }
+        HttpServletRequest request = params.getRequest();
+        sendStats(request);
+        log.debug("Возвращено {} событий", result.size());
+        return result;
+    }
+
+    private List<EventShortDto> findSortedByDate(int from,
+                                                 int size,
+                                                 String text,
+                                                 List<Long> categories,
+                                                 Boolean paid,
+                                                 LocalDateTime rangeStart,
+                                                 LocalDateTime rangeEnd,
+                                                 Boolean onlyAvailable) {
         Sort sorting = Sort.by("eventDate").ascending();
         Pageable pageable = PageRequest.of(from / size, size, sorting);
+        log.trace("Поиск с пагинацией: offset={}, limit={}, onlyAvailable={}",
+                pageable.getOffset(), pageable.getPageSize(), onlyAvailable);
         List<Event> events = eventRepository.findEventsPublic(text, categories, paid,
                 rangeStart, rangeEnd, onlyAvailable, pageable);
+        log.trace("Найдено {} событий (сортировка по дате)", events.size());
+        return findSortedEventsPublicRequest(events);
+    }
+
+    private List<EventShortDto> findSortedByViews(int from,
+                                                  int size,
+                                                  String text,
+                                                  List<Long> categories,
+                                                  Boolean paid,
+                                                  LocalDateTime rangeStart,
+                                                  LocalDateTime rangeEnd,
+                                                  Boolean onlyAvailable) {
+        log.trace("Поиск без пагинации для сортировки по просмотрам, onlyAvailable={}", onlyAvailable);
+        List<Event> events = eventRepository.findEventsPublic(
+                text, categories, paid, rangeStart, rangeEnd, onlyAvailable, null);
+        log.trace("Найдено {} событий для сортировки по просмотрам", events.size());
+
+        List<EventShortDto> result = findSortedEventsPublicRequest(events);
+        if (result.size() > 100) {
+            log.debug("Сортировка в памяти для {} событий (может быть затратно)", result.size());
+        }
+        result.sort(Comparator.comparing(EventShortDto::getViews).reversed());
+            int toIndex = Math.min(from + size, result.size());
+            if (from >= result.size()) {
+                log.trace("Запрошенный offset превышает количество найденных событий");
+                return Collections.emptyList();
+            }
+        List<EventShortDto> paginatedResult = result.subList(from, toIndex);
+        log.trace("Применена пагинация in-memory: from={}, to={}, returned={}",
+                from, toIndex, paginatedResult.size());
+
+        return paginatedResult;
+    }
+
+    private List<EventShortDto> findSortedEventsPublicRequest(List<Event> events) {
         if (events.isEmpty()) {
             return Collections.emptyList();
         }
-
+        if (events.size() > 20) {
+            log.trace("Запрос статистики для {} событий (batch)", events.size());
+        }
         Map<Long, Long> confirmedRequestsMap = getConfirmedRequestsBatch(events);
         Map<Long, Long> viewsMap = getEventsViewsBatch(events);
-
         List<EventShortDto> result = events.stream()
                 .map(event -> {
                     Long confirmedRequests = confirmedRequestsMap.getOrDefault(event.getId(), 0L);
@@ -311,12 +396,7 @@ public class EventServiceImpl implements EventService {
                     return eventMapper.toEventShortDto(event, confirmedRequests, views);
                 })
                 .collect(Collectors.toList());
-        String sort = params.getSort();
-        if ("views".equals(sort)) {
-            result.sort(Comparator.comparing(EventShortDto::getViews).reversed());
-        }
-        HttpServletRequest request = params.getRequest();
-        sendStats(request);
+        log.trace("Создано {} DTO", result.size());
         return result;
     }
 

@@ -67,6 +67,6 @@ public abstract class EventMapper {
     @Mapping(target = "state", constant = "PENDING")
     @Mapping(target = "category", source = "category")
     @Mapping(target = "initiator", source = "initiator")
-    public abstract Event toEvent(NewEventDto newEventDto, Category category, User initiator);
+    public abstract Event toNewEvent(NewEventDto newEventDto, Category category, User initiator);
 
 }

@@ -1,6 +1,5 @@
 package ru.practicum.main_service.event.service;
 
-import com.zaxxer.hikari.util.FastList;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

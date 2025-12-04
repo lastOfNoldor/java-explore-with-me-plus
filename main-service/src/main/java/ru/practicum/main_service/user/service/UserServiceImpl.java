@@ -5,6 +5,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.main_service.exception.ConflictException;
+import ru.practicum.main_service.exception.NotFoundException;
 import ru.practicum.main_service.user.dto.NewUserRequest;
 import ru.practicum.main_service.user.dto.UserDto;
 import ru.practicum.main_service.user.mapper.UserMapper;
@@ -51,6 +52,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(Long userId) {
         userRepository.deleteById(userId);
+    }
+
+    @Override
+    public User getEntityById(Long userId) {
+        return userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User not found"));
     }
 
 }

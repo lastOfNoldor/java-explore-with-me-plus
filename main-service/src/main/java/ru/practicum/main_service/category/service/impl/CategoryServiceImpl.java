@@ -12,6 +12,7 @@ import ru.practicum.main_service.category.mapper.CategoryMapper;
 import ru.practicum.main_service.category.model.Category;
 import ru.practicum.main_service.category.repository.CategoryRepository;
 import ru.practicum.main_service.category.service.CategoryService;
+import ru.practicum.main_service.event.repository.EventRepository;
 import ru.practicum.main_service.exception.ConflictException;
 import ru.practicum.main_service.exception.NotFoundException;
 
@@ -25,7 +26,7 @@ import java.util.stream.Collectors;
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
-    //    private final EventRepository eventRepository;
+    private final EventRepository eventRepository;
     private final CategoryMapper categoryMapper;
 
     @Override
@@ -46,11 +47,11 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     public void deleteCategory(Long catId) {
-        Category category = getCategoryByIdOrThrow(catId);
+        Category category = getEntityById(catId);
 
-//        if (eventRepository.existsByCategoryId(catId)) {
-//            throw new ConflictException("Невозможно удалить категорию: существуют связанные события");
-//        }
+        if (eventRepository.existsByCategoryId(catId)) {
+            throw new ConflictException("Невозможно удалить категорию: существуют связанные события");
+        }
 
         categoryRepository.delete(category);
         log.info("Удалена категория с id: {}", catId);
@@ -59,7 +60,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     public CategoryDto updateCategory(Long catId, CategoryDto categoryDto) {
-        Category category = getCategoryByIdOrThrow(catId);
+        Category category = getEntityById(catId);
 
         if (categoryRepository.existsByNameAndIdNot(categoryDto.getName(), catId)) {
             throw new ConflictException("Категория с именем '" + categoryDto.getName() + "' уже существует");
@@ -82,11 +83,11 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryDto getCategoryById(Long catId) {
-        Category category = getCategoryByIdOrThrow(catId);
+        Category category = getEntityById(catId);
         return categoryMapper.toCategoryDto(category);
     }
 
-    private Category getCategoryByIdOrThrow(Long catId) {
+    public Category getEntityById(Long catId) {
         return categoryRepository.findById(catId).orElseThrow(() -> new NotFoundException("Категория с id=" + catId + " не найдена"));
     }
 

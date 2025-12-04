@@ -1,5 +1,6 @@
 package ru.practicum.main_service.category.mapper;
 
+import org.mapstruct.Named;
 import org.springframework.stereotype.Component;
 import ru.practicum.main_service.category.dto.CategoryDto;
 import ru.practicum.main_service.category.dto.NewCategoryDto;
@@ -12,16 +13,13 @@ public class CategoryMapper {
         return Category.builder().name(newCategoryDto.getName()).build();
     }
 
-    public Category toCategory(CategoryDto categoryDto) {
-        return Category.builder().id(categoryDto.getId()).name(categoryDto.getName()).build();
-    }
-
+    @Named("toCategoryDto")
     public CategoryDto toCategoryDto(Category category) {
+        if (category == null) {
+            return null;
+        }
         return new CategoryDto(category.getId(), category.getName());
     }
 
-    public CategoryDto toCategoryDto(NewCategoryDto newCategoryDto) {
-        return new CategoryDto(null, newCategoryDto.getName());
-    }
 
 }

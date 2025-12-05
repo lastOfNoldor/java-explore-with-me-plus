@@ -19,6 +19,7 @@ public class EventFullDto {
     private Long id;
     private String annotation;
     private CategoryDto category;
+    @Builder.Default
     private Long confirmedRequests = 0L;
     private LocalDateTime createdOn;
     private String description;
@@ -31,5 +32,6 @@ public class EventFullDto {
     private Boolean requestModeration;
     private EventState state;
     private String title;
+    @Builder.Default
     private Long views = 0L;
 }

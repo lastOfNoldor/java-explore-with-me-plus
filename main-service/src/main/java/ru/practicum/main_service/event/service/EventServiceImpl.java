@@ -450,10 +450,5 @@ public class EventServiceImpl implements EventService {
 
     private void updateEventFields(Event event, UpdateEventRequest updateEvent) {
         eventMapper.updateEventFromRequest(updateEvent,event);
-
-        if (updateEvent.getCategory() != null) {
-            Category category = getCategoryById(updateEvent.getCategory());
-            event.setCategory(category);
-        }
     }
 }

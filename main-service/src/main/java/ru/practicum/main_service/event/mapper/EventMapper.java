@@ -24,7 +24,16 @@ public abstract class EventMapper {
     @Autowired
     protected CategoryService categoryService;
 
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+            ignoreByDefault = true)
+    @Mapping(target = "title", source = "title")
+    @Mapping(target = "annotation", source = "annotation")
+    @Mapping(target = "description", source = "description")
+    @Mapping(target = "eventDate", source = "eventDate")
+    @Mapping(target = "location", source = "location")
+    @Mapping(target = "paid", source = "paid")
+    @Mapping(target = "participantLimit", source = "participantLimit")
+    @Mapping(target = "requestModeration", source = "requestModeration")
     @Mapping(target = "category", source = "category", qualifiedByName = "mapCategoryIdToCategory")
     public abstract void updateEventFromRequest(UpdateEventRequest request, @MappingTarget Event event);
 
@@ -36,6 +45,8 @@ public abstract class EventMapper {
         return categoryService.getEntityById(categoryId);
     }
 
+    @Mapping(target = "confirmedRequests", ignore = true)
+    @Mapping(target = "views", ignore = true)
     public abstract EventFullDto toEventFullDto(Event event);
 
     public EventFullDto toEventFullDto(Event event, Long confirmedRequests, Long views) {
@@ -49,6 +60,8 @@ public abstract class EventMapper {
         return dto;
     }
 
+    @Mapping(target = "confirmedRequests", ignore = true)
+    @Mapping(target = "views", ignore = true)
     public abstract EventShortDto toEventShortDto(Event event);
 
     public EventShortDto toEventShortDto(Event event, Long confirmedRequests, Long views) {
@@ -67,6 +80,7 @@ public abstract class EventMapper {
     @Mapping(target = "state", constant = "PENDING")
     @Mapping(target = "category", source = "category")
     @Mapping(target = "initiator", source = "initiator")
+    @Mapping(target = "publishedOn", ignore = true)
     public abstract Event toNewEvent(NewEventDto newEventDto, Category category, User initiator);
 
 }

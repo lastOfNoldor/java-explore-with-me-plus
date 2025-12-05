@@ -1,5 +1,6 @@
 package ru.practicum.main_service.compilation.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -8,8 +9,6 @@ import ru.practicum.main_service.compilation.dto.CompilationDto;
 import ru.practicum.main_service.compilation.dto.param.NewCompilationDto;
 import ru.practicum.main_service.compilation.dto.param.UpdateCompilationRequest;
 import ru.practicum.main_service.compilation.service.CompilationService;
-
-import jakarta.validation.Valid;
 
 @Slf4j
 @RestController
@@ -33,8 +32,7 @@ public class AdminCompilationController {
     }
 
     @PatchMapping("/{compId}")
-    public CompilationDto updateCompilation(@PathVariable Long compId,
-                                            @Valid @RequestBody UpdateCompilationRequest updateRequest) {
+    public CompilationDto updateCompilation(@PathVariable Long compId, @Valid @RequestBody UpdateCompilationRequest updateRequest) {
         log.info("PATCH /admin/compilations/{} - обновление подборки", compId);
         return compilationService.updateCompilation(compId, updateRequest);
     }

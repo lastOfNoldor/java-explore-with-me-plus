@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface EventRepository extends JpaRepository<Event, Long>, EventRepositoryCustom  {
-    @EntityGraph(attributePaths = {"category","initiator"})
+public interface EventRepository extends JpaRepository<Event, Long>, EventRepositoryCustom {
+    @EntityGraph(attributePaths = {"category", "initiator"})
     List<Event> findByInitiatorId(Long userId, Pageable pageable);
 
     Optional<Event> findByIdAndInitiatorId(Long eventId, Long userId);

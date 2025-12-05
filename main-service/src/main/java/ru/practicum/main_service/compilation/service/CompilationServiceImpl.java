@@ -35,26 +35,20 @@ public class CompilationServiceImpl implements CompilationService {
 
     @Override
     public List<CompilationDto> getCompilations(GetCompilationsDto params) {
-        log.info("Получение подборок: pinned={}, from={}, size={}",
-                params.getPinned(), params.getFrom(), params.getSize());
+        log.info("Получение подборок: pinned={}, from={}, size={}", params.getPinned(), params.getFrom(), params.getSize());
 
         Pageable pageable = PageRequest.of(params.getFrom() / params.getSize(), params.getSize());
 
-        List<Compilation> compilations = (params.getPinned() != null)
-                ? compilationRepository.findAllByPinned(params.getPinned(), pageable).getContent()
-                : compilationRepository.findAll(pageable).getContent();
+        List<Compilation> compilations = (params.getPinned() != null) ? compilationRepository.findAllByPinned(params.getPinned(), pageable).getContent() : compilationRepository.findAll(pageable).getContent();
 
-        return compilations.stream()
-                .map(compilationMapper::toDto)
-                .toList();
+        return compilations.stream().map(compilationMapper::toDto).toList();
     }
 
     @Override
     public CompilationDto getCompilationById(Long compId) {
         log.info("Получение подборки с ID: {}", compId);
 
-        Compilation compilation = compilationRepository.findByIdWithEvents(compId)
-                .orElseThrow(() -> new NotFoundException(String.format(COMPILATION_NOT_FOUND, compId)));
+        Compilation compilation = compilationRepository.findByIdWithEvents(compId).orElseThrow(() -> new NotFoundException(String.format(COMPILATION_NOT_FOUND, compId)));
 
         return compilationMapper.toDto(compilation);
     }
@@ -100,12 +94,10 @@ public class CompilationServiceImpl implements CompilationService {
     public CompilationDto updateCompilation(Long compId, UpdateCompilationRequest updateRequest) {
         log.info("Обновление подборки с ID: {}", compId);
 
-        Compilation compilation = compilationRepository.findByIdWithEvents(compId)
-                .orElseThrow(() -> new NotFoundException(String.format(COMPILATION_NOT_FOUND, compId)));
+        Compilation compilation = compilationRepository.findByIdWithEvents(compId).orElseThrow(() -> new NotFoundException(String.format(COMPILATION_NOT_FOUND, compId)));
 
         if (updateRequest.getTitle() != null && !updateRequest.getTitle().isBlank()) {
-            if (!compilation.getTitle().equals(updateRequest.getTitle()) &&
-                    compilationRepository.existsByTitle(updateRequest.getTitle())) {
+            if (!compilation.getTitle().equals(updateRequest.getTitle()) && compilationRepository.existsByTitle(updateRequest.getTitle())) {
                 throw new ConflictException("Подборка с названием '" + updateRequest.getTitle() + "' уже существует");
             }
             compilation.setTitle(updateRequest.getTitle());

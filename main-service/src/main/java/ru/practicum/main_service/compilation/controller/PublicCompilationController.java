@@ -3,7 +3,10 @@ package ru.practicum.main_service.compilation.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.main_service.compilation.dto.CompilationDto;
 import ru.practicum.main_service.compilation.dto.param.GetCompilationsDto;
 import ru.practicum.main_service.compilation.service.CompilationService;
@@ -20,8 +23,7 @@ public class PublicCompilationController {
 
     @GetMapping
     public List<CompilationDto> getCompilations(@Validated GetCompilationsDto params) {
-        log.info("GET /compilations?pinned={}&from={}&size={} - получение подборок",
-                params.getPinned(), params.getFrom(), params.getSize());
+        log.info("GET /compilations?pinned={}&from={}&size={} - получение подборок", params.getPinned(), params.getFrom(), params.getSize());
         return compilationService.getCompilations(params);
     }
 

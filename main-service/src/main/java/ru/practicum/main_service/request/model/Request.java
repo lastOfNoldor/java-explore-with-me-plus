@@ -1,9 +1,8 @@
 package ru.practicum.main_service.request.model;
 
+import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-
-import jakarta.persistence.*;
 import ru.practicum.main_service.event.model.Event;
 import ru.practicum.main_service.user.model.User;
 

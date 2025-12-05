@@ -1,11 +1,10 @@
 package ru.practicum.main_service.request.dto;
 
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import ru.practicum.main_service.request.model.RequestStatus;
 
 import java.util.List;

@@ -35,7 +35,7 @@ public class Event {
     private EventState state;
     @Column(name = "request_moderation", nullable = false)
     private Boolean requestModeration;
-    @Column(name = "participant_limit",nullable = false)
+    @Column(name = "participant_limit", nullable = false)
     private Integer participantLimit;
     @Column(nullable = false)
     private Boolean paid;

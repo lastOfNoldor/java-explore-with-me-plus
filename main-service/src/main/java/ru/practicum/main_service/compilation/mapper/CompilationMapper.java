@@ -1,6 +1,7 @@
 package ru.practicum.main_service.compilation.mapper;
 
-import org.mapstruct.*;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import ru.practicum.main_service.compilation.dto.CompilationDto;
 import ru.practicum.main_service.compilation.dto.param.NewCompilationDto;
 import ru.practicum.main_service.compilation.model.Compilation;
@@ -26,9 +27,7 @@ public interface CompilationMapper {
         if (events == null) {
             return Set.of();
         }
-        return events.stream()
-                .map(this::eventToEventShortDto)
-                .collect(Collectors.toSet());
+        return events.stream().map(this::eventToEventShortDto).collect(Collectors.toSet());
     }
 
     EventShortDto eventToEventShortDto(Event event);

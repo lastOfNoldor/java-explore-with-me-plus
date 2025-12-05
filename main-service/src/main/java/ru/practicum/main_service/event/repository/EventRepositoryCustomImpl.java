@@ -26,14 +26,8 @@ public class EventRepositoryCustomImpl implements EventRepositoryCustom {
     private final EntityManager entityManager;
 
     @Override
-    public List<Event> findEventsByAdmin(List<Long> users,
-                                         List<EventState> states,
-                                         List<Long> categories,
-                                         LocalDateTime rangeStart,
-                                         LocalDateTime rangeEnd,
-                                         Pageable pageable) {
-        log.debug("Criteria API: админский поиск. users={}, states={}, categories={}, range=[{}, {}]",
-                users, states, categories, rangeStart, rangeEnd);
+    public List<Event> findEventsByAdmin(List<Long> users, List<EventState> states, List<Long> categories, LocalDateTime rangeStart, LocalDateTime rangeEnd, Pageable pageable) {
+        log.debug("Criteria API: админский поиск. users={}, states={}, categories={}, range=[{}, {}]", users, states, categories, rangeStart, rangeEnd);
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Event> cq = cb.createQuery(Event.class);
         Root<Event> event = cq.from(Event.class);
@@ -69,8 +63,7 @@ public class EventRepositoryCustomImpl implements EventRepositoryCustom {
         if (pageable != null && pageable.isPaged()) {
             query.setFirstResult((int) pageable.getOffset());
             query.setMaxResults(pageable.getPageSize());
-            log.trace("Применена пагинация: offset={}, limit={}",
-                    pageable.getOffset(), pageable.getPageSize());
+            log.trace("Применена пагинация: offset={}, limit={}", pageable.getOffset(), pageable.getPageSize());
         }
 
         List<Event> result = query.getResultList();
@@ -79,15 +72,8 @@ public class EventRepositoryCustomImpl implements EventRepositoryCustom {
     }
 
     @Override
-    public List<Event> findEventsPublic(String text,
-                                        List<Long> categories,
-                                        Boolean paid,
-                                        LocalDateTime rangeStart,
-                                        LocalDateTime rangeEnd,
-                                        Boolean onlyAvailable,
-                                        Pageable pageable) {
-        log.debug("Criteria API: публичный поиск. text={}, categories={}, paid={}, onlyAvailable={}",
-                text, categories, paid, onlyAvailable);
+    public List<Event> findEventsPublic(String text, List<Long> categories, Boolean paid, LocalDateTime rangeStart, LocalDateTime rangeEnd, Boolean onlyAvailable, Pageable pageable) {
+        log.debug("Criteria API: публичный поиск. text={}, categories={}, paid={}, onlyAvailable={}", text, categories, paid, onlyAvailable);
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Event> cq = cb.createQuery(Event.class);
         Root<Event> event = cq.from(Event.class);
@@ -127,17 +113,10 @@ public class EventRepositoryCustomImpl implements EventRepositoryCustom {
             log.trace("Добавлен сложный фильтр onlyAvailable с подзапросом");
             Subquery<Long> subquery = cq.subquery(Long.class);
             Root<Request> request = subquery.from(Request.class);
-            subquery.select(cb.count(request.get("id")))
-                    .where(cb.and(
-                            cb.equal(request.get("event").get("id"), event.get("id")),
-                            cb.equal(request.get("status"), RequestStatus.CONFIRMED)
-                    ));
+            subquery.select(cb.count(request.get("id"))).where(cb.and(cb.equal(request.get("event").get("id"), event.get("id")), cb.equal(request.get("status"), RequestStatus.CONFIRMED)));
 
             Predicate noLimit = cb.equal(event.get("participantLimit"), 0);
-            Predicate hasLimitAndAvailable = cb.and(
-                    cb.greaterThan(event.get("participantLimit"), 0),
-                    cb.lessThan(subquery, event.get("participantLimit"))
-            );
+            Predicate hasLimitAndAvailable = cb.and(cb.greaterThan(event.get("participantLimit"), 0), cb.lessThan(subquery, event.get("participantLimit")));
 
             predicates.add(cb.or(noLimit, hasLimitAndAvailable));
             log.trace("Условие onlyAvailable: participantLimit=0 OR confirmedRequests < participantLimit");
@@ -155,8 +134,7 @@ public class EventRepositoryCustomImpl implements EventRepositoryCustom {
                     } else {
                         orders.add(cb.desc(event.get("eventDate")));
                     }
-                    log.trace("Добавлена сортировка по eventDate: {}",
-                            order.isAscending() ? "ASC" : "DESC");
+                    log.trace("Добавлена сортировка по eventDate: {}", order.isAscending() ? "ASC" : "DESC");
                 }
             });
             if (!orders.isEmpty()) {
@@ -174,8 +152,7 @@ public class EventRepositoryCustomImpl implements EventRepositoryCustom {
         if (pageable != null && pageable.isPaged()) {
             query.setFirstResult((int) pageable.getOffset());
             query.setMaxResults(pageable.getPageSize());
-            log.trace("Применена пагинация : offset={}, limit={}",
-                    pageable.getOffset(), pageable.getPageSize());
+            log.trace("Применена пагинация : offset={}, limit={}", pageable.getOffset(), pageable.getPageSize());
         }
 
         List<Event> result = query.getResultList();

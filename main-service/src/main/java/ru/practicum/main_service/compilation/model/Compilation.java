@@ -1,9 +1,9 @@
 package ru.practicum.main_service.compilation.model;
 
+import jakarta.persistence.*;
 import lombok.*;
 import ru.practicum.main_service.event.model.Event;
 
-import jakarta.persistence.*;
 import java.util.Set;
 
 @Entity
@@ -25,10 +25,6 @@ public class Compilation {
     private Boolean pinned;
 
     @ManyToMany
-    @JoinTable(
-            name = "compilation_events",
-            joinColumns = @JoinColumn(name = "compilation_id"),
-            inverseJoinColumns = @JoinColumn(name = "event_id")
-    )
+    @JoinTable(name = "compilation_events", joinColumns = @JoinColumn(name = "compilation_id"), inverseJoinColumns = @JoinColumn(name = "event_id"))
     private Set<Event> events;
 }

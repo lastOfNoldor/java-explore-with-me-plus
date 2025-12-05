@@ -1,12 +1,10 @@
 package ru.practicum.main_service.compilation.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import ru.practicum.main_service.event.dto.EventShortDto;
 
 import java.util.Set;

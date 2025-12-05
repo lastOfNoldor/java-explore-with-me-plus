@@ -9,7 +9,8 @@ import ru.practicum.main_service.event.model.EventState;
 import ru.practicum.main_service.event.repository.EventRepository;
 import ru.practicum.main_service.exception.ConflictException;
 import ru.practicum.main_service.exception.NotFoundException;
-import ru.practicum.main_service.request.dto.*;
+import ru.practicum.main_service.request.dto.EventRequestStatusUpdateResult;
+import ru.practicum.main_service.request.dto.ParticipationRequestDto;
 import ru.practicum.main_service.request.dto.param.CancelRequestParamDto;
 import ru.practicum.main_service.request.dto.param.RequestParamDto;
 import ru.practicum.main_service.request.dto.param.UpdateRequestStatusParamDto;
@@ -39,10 +40,7 @@ public class RequestServiceImpl implements RequestService {
     @Override
     public List<ParticipationRequestDto> getUserRequests(Long userId) {
         log.info("Получение заявок пользователя с ID: {}", userId);
-        return requestRepository.findByRequesterId(userId)
-                .stream()
-                .map(requestMapper::toDto)
-                .toList();
+        return requestRepository.findByRequesterId(userId).stream().map(requestMapper::toDto).toList();
     }
 
     @Override
@@ -50,12 +48,9 @@ public class RequestServiceImpl implements RequestService {
     public ParticipationRequestDto createRequest(RequestParamDto paramDto) {
         log.info("Создание заявки пользователя {} на событие {}", paramDto.getUserId(), paramDto.getEventId());
 
-        User user = userRepository.findById(paramDto.getUserId())
-                .orElseThrow(() -> new NotFoundException(String.format("Пользователь с ID %s не найден",
-                        paramDto.getEventId())));
+        User user = userRepository.findById(paramDto.getUserId()).orElseThrow(() -> new NotFoundException(String.format("Пользователь с ID %s не найден", paramDto.getEventId())));
 
-        Event event = eventRepository.findById(paramDto.getEventId())
-                .orElseThrow(() -> new NotFoundException(String.format(EVENT_NOT_FOUND, paramDto.getEventId())));
+        Event event = eventRepository.findById(paramDto.getEventId()).orElseThrow(() -> new NotFoundException(String.format(EVENT_NOT_FOUND, paramDto.getEventId())));
 
         validateRequestCreation(paramDto.getUserId(), paramDto.getEventId(), event);
 
@@ -71,9 +66,7 @@ public class RequestServiceImpl implements RequestService {
     public ParticipationRequestDto cancelRequest(CancelRequestParamDto paramDto) {
         log.info("Отмена заявки {} пользователем {}", paramDto.getRequestId(), paramDto.getUserId());
 
-        Request request = requestRepository.findByIdAndRequesterId(paramDto.getRequestId(), paramDto.getUserId())
-                .orElseThrow(() -> new NotFoundException(String.format("Заявка с ID %s не найдена",
-                        paramDto.getRequestId())));
+        Request request = requestRepository.findByIdAndRequesterId(paramDto.getRequestId(), paramDto.getUserId()).orElseThrow(() -> new NotFoundException(String.format("Заявка с ID %s не найдена", paramDto.getRequestId())));
 
         if (request.getStatus().equals(RequestStatus.CANCELED)) {
             throw new ConflictException("Заявка уже отменена");
@@ -94,20 +87,15 @@ public class RequestServiceImpl implements RequestService {
             throw new NotFoundException(String.format(EVENT_NOT_FOUND, paramDto.getEventId()));
         }
 
-        return requestRepository.findByEventId(paramDto.getEventId())
-                .stream()
-                .map(requestMapper::toDto)
-                .toList();
+        return requestRepository.findByEventId(paramDto.getEventId()).stream().map(requestMapper::toDto).toList();
     }
 
     @Override
     @Transactional
     public EventRequestStatusUpdateResult updateRequestStatus(UpdateRequestStatusParamDto paramDto) {
-        log.info("Изменение статуса заявок на событие {} пользователем {}",
-                paramDto.getEventId(), paramDto.getUserId());
+        log.info("Изменение статуса заявок на событие {} пользователем {}", paramDto.getEventId(), paramDto.getUserId());
 
-        Event event = eventRepository.findByIdAndInitiatorId(paramDto.getEventId(), paramDto.getUserId())
-                .orElseThrow(() -> new NotFoundException(String.format(EVENT_NOT_FOUND, paramDto.getEventId())));
+        Event event = eventRepository.findByIdAndInitiatorId(paramDto.getEventId(), paramDto.getUserId()).orElseThrow(() -> new NotFoundException(String.format(EVENT_NOT_FOUND, paramDto.getEventId())));
 
         List<Request> requests = requestRepository.findByIdIn(paramDto.getUpdateRequest().getRequestIds());
         if (requests.isEmpty()) {
@@ -174,8 +162,7 @@ public class RequestServiceImpl implements RequestService {
         return new EventRequestStatusUpdateResult(confirmed, List.of());
     }
 
-    private EventRequestStatusUpdateResult processRequestsWithLimit(Event event, List<Request> requests,
-                                                                    RequestStatus targetStatus) {
+    private EventRequestStatusUpdateResult processRequestsWithLimit(Event event, List<Request> requests, RequestStatus targetStatus) {
         long confirmedRequests = requestRepository.countConfirmedRequestsByEventId(event.getId());
         long availableSlots = event.getParticipantLimit() - confirmedRequests;
 
@@ -186,9 +173,7 @@ public class RequestServiceImpl implements RequestService {
         return processEachRequest(requests, targetStatus, availableSlots);
     }
 
-    private EventRequestStatusUpdateResult processEachRequest(List<Request> requests,
-                                                              RequestStatus targetStatus,
-                                                              long availableSlots) {
+    private EventRequestStatusUpdateResult processEachRequest(List<Request> requests, RequestStatus targetStatus, long availableSlots) {
         List<ParticipationRequestDto> confirmed = new ArrayList<>();
         List<ParticipationRequestDto> rejected = new ArrayList<>();
 
@@ -205,16 +190,11 @@ public class RequestServiceImpl implements RequestService {
 
     private void validateRequestStatus(Request request) {
         if (!request.getStatus().equals(RequestStatus.PENDING)) {
-            throw new ConflictException("Можно изменять только заявки в статусе PENDING" +
-                    ". Заявка ID: " + request.getId() + " имеет статус: " + request.getStatus());
+            throw new ConflictException("Можно изменять только заявки в статусе PENDING" + ". Заявка ID: " + request.getId() + " имеет статус: " + request.getStatus());
         }
     }
 
-    private long updateRequestStatus(Request request,
-                                     RequestStatus targetStatus,
-                                     long availableSlots,
-                                     List<ParticipationRequestDto> confirmed,
-                                     List<ParticipationRequestDto> rejected) {
+    private long updateRequestStatus(Request request, RequestStatus targetStatus, long availableSlots, List<ParticipationRequestDto> confirmed, List<ParticipationRequestDto> rejected) {
         if (targetStatus == RequestStatus.CONFIRMED) {
             if (availableSlots > 0) {
                 request.setStatus(RequestStatus.CONFIRMED);

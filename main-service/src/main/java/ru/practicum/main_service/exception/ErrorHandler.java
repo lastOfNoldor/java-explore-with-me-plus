@@ -15,26 +15,16 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestControllerAdvice
 public class ErrorHandler {
-    private static final DateTimeFormatter FORMATTER =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiErrorWrapper handleValidationException(MethodArgumentNotValidException e) {
-        String message = e.getBindingResult().getFieldErrors().stream()
-                .map(error -> "Field: " + error.getField() +
-                        ". Error: " + error.getDefaultMessage() +
-                        ". Value: " + error.getRejectedValue())
-                .collect(Collectors.joining("; "));
+        String message = e.getBindingResult().getFieldErrors().stream().map(error -> "Field: " + error.getField() + ". Error: " + error.getDefaultMessage() + ". Value: " + error.getRejectedValue()).collect(Collectors.joining("; "));
 
         log.warn("Ошибка валидации: {}", message);
 
-        ApiError apiError = new ApiError(
-                "BAD_REQUEST",
-                "Incorrectly made request.",
-                message,
-                LocalDateTime.now().format(FORMATTER)
-        );
+        ApiError apiError = new ApiError("BAD_REQUEST", "Incorrectly made request.", message, LocalDateTime.now().format(FORMATTER));
 
         return new ApiErrorWrapper(apiError);
     }
@@ -44,12 +34,9 @@ public class ErrorHandler {
     public ApiErrorWrapper handleNotFoundException(NotFoundException e) {
         log.warn("Объект не найден: {}", e.getMessage());
 
-        ApiError apiError = new ApiError(
-                "NOT_FOUND",
-                "The required object was not found.",  // ← Стандартный reason
+        ApiError apiError = new ApiError("NOT_FOUND", "The required object was not found.",  // ← Стандартный reason
                 e.getMessage(),  // ← Конкретное сообщение
-                LocalDateTime.now().format(FORMATTER)
-        );
+                LocalDateTime.now().format(FORMATTER));
 
         return new ApiErrorWrapper(apiError);
     }
@@ -64,19 +51,13 @@ public class ErrorHandler {
 
         if (message.contains("category") || message.contains("The category is not empty")) {
             reason = "For the requested operation the conditions are not met.";
-        } else if (message.contains("could not execute statement") ||
-                message.contains("constraint")) {
+        } else if (message.contains("could not execute statement") || message.contains("constraint")) {
             reason = "Integrity constraint has been violated.";
         } else {
             reason = "For the requested operation the conditions are not met.";
         }
 
-        ApiError apiError = new ApiError(
-                "CONFLICT",
-                reason,
-                message,
-                LocalDateTime.now().format(FORMATTER)
-        );
+        ApiError apiError = new ApiError("CONFLICT", reason, message, LocalDateTime.now().format(FORMATTER));
 
         return new ApiErrorWrapper(apiError);
     }
@@ -86,12 +67,7 @@ public class ErrorHandler {
     public ApiErrorWrapper handleValidationException(ValidationException e) {
         log.warn("Ошибка валидации : {}", e.getMessage());
 
-        ApiError apiError = new ApiError(
-                "BAD_REQUEST",
-                "Incorrectly made request.",
-                e.getMessage(),
-                LocalDateTime.now().format(FORMATTER)
-        );
+        ApiError apiError = new ApiError("BAD_REQUEST", "Incorrectly made request.", e.getMessage(), LocalDateTime.now().format(FORMATTER));
 
         return new ApiErrorWrapper(apiError);
     }
@@ -101,12 +77,7 @@ public class ErrorHandler {
     public ApiErrorWrapper handleMissingParams(MissingServletRequestParameterException e) {
         log.warn("Отсутствует обязательный параметр: {}", e.getMessage());
 
-        ApiError apiError = new ApiError(
-                "BAD_REQUEST",
-                "Incorrectly made request.",
-                e.getMessage(),
-                LocalDateTime.now().format(FORMATTER)
-        );
+        ApiError apiError = new ApiError("BAD_REQUEST", "Incorrectly made request.", e.getMessage(), LocalDateTime.now().format(FORMATTER));
 
         return new ApiErrorWrapper(apiError);
     }
@@ -116,12 +87,7 @@ public class ErrorHandler {
     public ApiErrorWrapper handleForbiddenException(ForbiddenException e) {
         log.warn("Доступ запрещен: {}", e.getMessage());
 
-        ApiError apiError = new ApiError(
-                "FORBIDDEN",
-                "For the requested operation the conditions are not met.",
-                e.getMessage(),
-                LocalDateTime.now().format(FORMATTER)
-        );
+        ApiError apiError = new ApiError("FORBIDDEN", "For the requested operation the conditions are not met.", e.getMessage(), LocalDateTime.now().format(FORMATTER));
 
         return new ApiErrorWrapper(apiError);
     }
@@ -131,12 +97,7 @@ public class ErrorHandler {
     public ApiErrorWrapper handleGenericException(Exception e) {
         log.error("Внутренняя ошибка сервера: {}", e.getMessage(), e);
 
-        ApiError apiError = new ApiError(
-                "INTERNAL_SERVER_ERROR",
-                "Internal server error",
-                "Произошла непредвиденная ошибка",
-                LocalDateTime.now().format(FORMATTER)
-        );
+        ApiError apiError = new ApiError("INTERNAL_SERVER_ERROR", "Internal server error", "Произошла непредвиденная ошибка", LocalDateTime.now().format(FORMATTER));
 
         return new ApiErrorWrapper(apiError);
     }

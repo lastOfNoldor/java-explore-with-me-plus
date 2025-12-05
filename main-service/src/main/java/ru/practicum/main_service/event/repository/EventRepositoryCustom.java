@@ -9,18 +9,7 @@ import java.util.List;
 
 public interface EventRepositoryCustom {
 
-    List<Event> findEventsByAdmin(List<Long> users,
-                                  List<EventState> states,
-                                  List<Long> categories,
-                                  LocalDateTime rangeStart,
-                                  LocalDateTime rangeEnd,
-                                  Pageable pageable);
+    List<Event> findEventsByAdmin(List<Long> users, List<EventState> states, List<Long> categories, LocalDateTime rangeStart, LocalDateTime rangeEnd, Pageable pageable);
 
-    List<Event> findEventsPublic(String text,
-                                 List<Long> categories,
-                                 Boolean paid,
-                                 LocalDateTime rangeStart,
-                                 LocalDateTime rangeEnd,
-                                 Boolean onlyAvailable,
-                                 Pageable pageable);
+    List<Event> findEventsPublic(String text, List<Long> categories, Boolean paid, LocalDateTime rangeStart, LocalDateTime rangeEnd, Boolean onlyAvailable, Pageable pageable);
 }

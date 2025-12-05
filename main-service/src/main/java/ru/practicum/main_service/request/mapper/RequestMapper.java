@@ -11,20 +11,10 @@ import ru.practicum.main_service.user.model.User;
 public class RequestMapper {
 
     public ParticipationRequestDto toDto(Request request) {
-        return ParticipationRequestDto.builder()
-                .id(request.getId())
-                .created(request.getCreated())
-                .event(request.getEvent().getId())
-                .requester(request.getRequester().getId())
-                .status(request.getStatus())
-                .build();
+        return ParticipationRequestDto.builder().id(request.getId()).created(request.getCreated()).event(request.getEvent().getId()).requester(request.getRequester().getId()).status(request.getStatus()).build();
     }
 
     public Request toEntity(Event event, User requester) {
-        return Request.builder()
-                .event(event)
-                .requester(requester)
-                .status(RequestStatus.PENDING)
-                .build();
+        return Request.builder().event(event).requester(requester).status(RequestStatus.PENDING).build();
     }
 }

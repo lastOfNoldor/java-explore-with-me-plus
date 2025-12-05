@@ -76,10 +76,6 @@ public class CompilationServiceImpl implements CompilationService {
         }
         compilation.setEvents(events);
 
-        if (compilationDto.getPinned() == null) {
-            compilation.setPinned(false);
-        }
-
         Compilation saved = compilationRepository.save(compilation);
         log.info("Подборка создана с ID: {}", saved.getId());
 

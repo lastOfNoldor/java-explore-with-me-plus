@@ -15,11 +15,11 @@ public interface EventService {
 
     EventFullDto getEventByUser(EventByUserRequest request);
 
-    EventFullDto updateEventByUser(EventByUserRequest request, UpdateEventRequest updateEvent);
+    EventFullDto updateEventByUser(EventByUserRequest request, UpdateEventUserRequest updateEvent);
 
     List<EventFullDto> getEventsByAdmin(EventsByAdminParams params);
 
-    EventFullDto updateEventByAdmin(Long eventId, UpdateEventRequest updateEvent);
+    EventFullDto updateEventByAdmin(Long eventId, UpdateEventAdminRequest updateEvent);
 
     List<EventShortDto> getEventsPublic(EventsPublicParams params);
 

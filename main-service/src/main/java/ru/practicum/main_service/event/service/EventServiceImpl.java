@@ -19,6 +19,7 @@ import ru.practicum.main_service.event.model.Event;
 import ru.practicum.main_service.event.model.EventState;
 import ru.practicum.main_service.event.model.StateAction;
 import ru.practicum.main_service.event.repository.EventRepository;
+import ru.practicum.main_service.exception.ConflictException;
 import ru.practicum.main_service.exception.NotFoundException;
 import ru.practicum.main_service.exception.ValidationException;
 import ru.practicum.main_service.request.model.RequestStatus;
@@ -158,7 +159,7 @@ public class EventServiceImpl implements EventService {
                 event.getCreatedOn(),
                 LocalDateTime.now(),
                 List.of("/events/" + event.getId()),
-                false
+                true
         );
 
         Long views = 0L;
@@ -188,7 +189,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional
-    public EventFullDto updateEventByUser(EventByUserRequest request, UpdateEventRequest updateEvent) {
+    public EventFullDto updateEventByUser(EventByUserRequest request, UpdateEventUserRequest updateEvent) {
         Long userId = request.getUserId();
         Long eventId = request.getEventId();
         getUserById(userId);
@@ -200,7 +201,7 @@ public class EventServiceImpl implements EventService {
         }
 
         if (event.getState() == EventState.PUBLISHED) {
-            throw new ValidationException("Нельзя редактировать опубликованное событие");
+            throw new ConflictException("Нельзя редактировать опубликованное событие");
         }
 
         updateEventFields(event, updateEvent);
@@ -228,7 +229,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional
-    public EventFullDto updateEventByAdmin(Long eventId, UpdateEventRequest updateEvent) {
+    public EventFullDto updateEventByAdmin(Long eventId, UpdateEventAdminRequest updateEvent) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Событие с id=" + eventId + " не найдено"));
 
@@ -246,14 +247,14 @@ public class EventServiceImpl implements EventService {
             switch (updateEvent.getStateAction()) {
                 case PUBLISH_EVENT:
                     if (event.getState() != EventState.PENDING) {
-                        throw new ValidationException("Событие можно публиковать только если оно в состоянии ожидания");
+                        throw new ConflictException("Событие можно публиковать только если оно в состоянии ожидания");
                     }
                     event.setState(EventState.PUBLISHED);
                     event.setPublishedOn(LocalDateTime.now());
                     break;
                 case REJECT_EVENT:
                     if (event.getState() == EventState.PUBLISHED) {
-                        throw new ValidationException("Нельзя отклонить опубликованное событие");
+                        throw new ConflictException("Нельзя отклонить опубликованное событие");
                     }
                     event.setState(EventState.CANCELED);
                     break;
@@ -450,10 +451,5 @@ public class EventServiceImpl implements EventService {
 
     private void updateEventFields(Event event, UpdateEventRequest updateEvent) {
         eventMapper.updateEventFromRequest(updateEvent,event);
-
-        if (updateEvent.getCategory() != null) {
-            Category category = getCategoryById(updateEvent.getCategory());
-            event.setCategory(category);
-        }
     }
 }

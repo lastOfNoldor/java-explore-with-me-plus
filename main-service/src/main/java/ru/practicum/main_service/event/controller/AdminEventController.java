@@ -10,6 +10,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.main_service.event.dto.EventFullDto;
 import ru.practicum.main_service.event.dto.param.EventsByAdminParams;
+import ru.practicum.main_service.event.dto.param.UpdateEventAdminRequest;
 import ru.practicum.main_service.event.dto.param.UpdateEventRequest;
 import ru.practicum.main_service.event.model.EventState;
 import ru.practicum.main_service.event.service.EventService;
@@ -40,7 +41,7 @@ public class AdminEventController {
 
     @PatchMapping("/admin/events/{eventId}")
     public EventFullDto updateEventByAdmin(@PathVariable Long eventId,
-                                           @Valid @RequestBody UpdateEventRequest updateEvent) {
+                                           @Valid @RequestBody UpdateEventAdminRequest updateEvent) {
         log.info("Обновление события с id: {} администратором", eventId);
         return eventService.updateEventByAdmin(eventId, updateEvent);
     }

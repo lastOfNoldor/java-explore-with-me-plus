@@ -1,8 +1,6 @@
 package ru.practicum.main_service.compilation.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
+import org.mapstruct.*;
 import ru.practicum.main_service.compilation.dto.CompilationDto;
 import ru.practicum.main_service.compilation.dto.param.NewCompilationDto;
 import ru.practicum.main_service.compilation.model.Compilation;
@@ -16,15 +14,15 @@ import java.util.stream.Collectors;
 @Mapper(componentModel = "spring", uses = EventMapper.class)
 public interface CompilationMapper {
 
-    @Mapping(target = "events", source = "events", qualifiedByName = "eventsToEventShortDtos")
+    @Mapping(target = "events", expression = "java(mapEvents(compilation.getEvents()))")
     CompilationDto toDto(Compilation compilation);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "events", ignore = true)
+    @Mapping(target = "pinned", source = "pinned", defaultValue = "false")
     Compilation toEntity(NewCompilationDto dto);
 
-    @Named("eventsToEventShortDtos")
-    default Set<EventShortDto> eventsToEventShortDtos(Set<Event> events) {
+    default Set<EventShortDto> mapEvents(Set<Event> events) {
         if (events == null) {
             return Set.of();
         }

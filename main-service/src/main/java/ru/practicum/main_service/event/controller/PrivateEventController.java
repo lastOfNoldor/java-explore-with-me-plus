@@ -14,6 +14,7 @@ import ru.practicum.main_service.event.dto.NewEventDto;
 import ru.practicum.main_service.event.dto.param.EventByUserRequest;
 import ru.practicum.main_service.event.dto.param.EventsByUserParams;
 import ru.practicum.main_service.event.dto.param.UpdateEventRequest;
+import ru.practicum.main_service.event.dto.param.UpdateEventUserRequest;
 import ru.practicum.main_service.event.service.EventService;
 
 import java.util.List;
@@ -53,7 +54,7 @@ public class PrivateEventController {
     @PatchMapping("/users/{userId}/events/{eventId}")
     public EventFullDto updateEventByUser(@PathVariable Long userId,
                                           @PathVariable Long eventId,
-                                          @Valid @RequestBody UpdateEventRequest updateEvent) {
+                                          @Valid @RequestBody UpdateEventUserRequest updateEvent) {
         log.info("Обновление события с id: {} пользователем с id: {}", eventId, userId);
         return eventService.updateEventByUser(new EventByUserRequest(userId, eventId), updateEvent);
     }

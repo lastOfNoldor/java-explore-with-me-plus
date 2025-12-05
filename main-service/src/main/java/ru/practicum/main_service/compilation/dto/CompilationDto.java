@@ -19,7 +19,6 @@ public class CompilationDto {
     private Long id;
 
     @NotBlank(message = "Title не может быть пустым")
-    @Size(max = 120, message = "Title должен быть короче 120 символов")
     private String title;
 
     private Boolean pinned;

@@ -13,7 +13,7 @@ import java.util.Set;
 @AllArgsConstructor
 public class NewCompilationDto {
     @NotBlank(message = "Title не может быть пустым")
-    @Size(max = 120, message = "Title должен быть короче 120 символов")
+    @Size(min = 50, message = "Title должен быть короче 50 символов")
     private String title;
 
     private Boolean pinned = false;

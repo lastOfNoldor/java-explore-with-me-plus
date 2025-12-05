@@ -1,6 +1,7 @@
 package ru.practicum.stat_client;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -20,8 +21,8 @@ public class RestStatClient implements StatClient {
 
     private final RestClient restClient;
 
-    public RestStatClient(RestClient restClient) {
-        this.restClient = restClient;
+    public RestStatClient(@Value("${client.url}") String statsServiceUrl) {
+        this.restClient = RestClient.builder().baseUrl(statsServiceUrl).build();
     }
 
     @Override

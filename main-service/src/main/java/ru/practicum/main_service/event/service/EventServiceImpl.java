@@ -127,9 +127,8 @@ public class EventServiceImpl implements EventService {
     }
 
     private Long getEventViews(Event event) {
-        LocalDateTime searchStart = event.getCreatedOn().withNano(0);
         String uri = "/events/" + event.getId();
-        List<ViewStatsDto> stats = statClient.getStats(searchStart, LocalDateTime.now(), List.of(uri), true);
+        List<ViewStatsDto> stats = statClient.getStats(event.getCreatedOn(), LocalDateTime.now(), List.of(uri), true);
         Long views = 0L;
         if (!stats.isEmpty()) {
             for (ViewStatsDto stat : stats) {

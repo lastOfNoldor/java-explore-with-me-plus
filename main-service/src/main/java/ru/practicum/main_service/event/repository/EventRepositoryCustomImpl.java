@@ -10,6 +10,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import ru.practicum.main_service.event.model.Event;
 import ru.practicum.main_service.event.model.EventState;
+import ru.practicum.main_service.request.model.Request;
+import ru.practicum.main_service.request.model.RequestStatus;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

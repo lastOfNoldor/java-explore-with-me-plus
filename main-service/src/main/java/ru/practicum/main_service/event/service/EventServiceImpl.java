@@ -21,6 +21,8 @@ import ru.practicum.main_service.event.model.StateAction;
 import ru.practicum.main_service.event.repository.EventRepository;
 import ru.practicum.main_service.exception.NotFoundException;
 import ru.practicum.main_service.exception.ValidationException;
+import ru.practicum.main_service.request.model.RequestStatus;
+import ru.practicum.main_service.request.repository.RequestRepository;
 import ru.practicum.main_service.user.model.User;
 import ru.practicum.main_service.user.service.UserService;
 import ru.practicum.stat_client.StatClient;
@@ -44,7 +46,7 @@ import java.util.stream.Collectors;
 public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
-//    private final RequestRepository requestRepository;
+    private final RequestRepository requestRepository;
     private final CategoryService categoryService;
     private final EventMapper eventMapper;
     private final StatClient statClient;
@@ -148,7 +150,7 @@ public class EventServiceImpl implements EventService {
     }
 
     private Long getEventRequests(Event event) {
-        return 0L; // requestRepository.countByEventIdAndStatus(event.getId(), RequestStatus.CONFIRMED);
+        return requestRepository.countByEventIdAndStatus(event.getId(), RequestStatus.CONFIRMED);
     }
 
     private Long getEventViews(Event event) {

@@ -48,5 +48,27 @@ public class Event {
     @Embedded
     private Location location;
 
+    @PrePersist
+    public void prePersist() {
+        if (this.createdOn == null) {
+            this.createdOn = LocalDateTime.now();
+        }
+        this.createdOn = this.createdOn.withNano(0);
+        if (this.eventDate != null) {
+            this.eventDate = this.eventDate.withNano(0);
+        }
+    }
 
+    @PreUpdate
+    public void preUpdate() {
+        if (this.createdOn != null) {
+            this.createdOn = this.createdOn.withNano(0);
+        }
+        if (this.publishedOn != null) {
+            this.publishedOn = this.publishedOn.withNano(0);
+        }
+        if (this.eventDate != null) {
+            this.eventDate = this.eventDate.withNano(0);
+        }
+    }
 }

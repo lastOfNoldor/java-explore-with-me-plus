@@ -39,4 +39,11 @@ public class ErrorHandler {
 
         return new ErrorResponse("Внутренняя ошибка сервера", "Произошла непредвиденная ошибка", "INTERNAL_SERVER_ERROR", LocalDateTime.now());
     }
+
+    @ExceptionHandler(ValidationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleValidationException(ValidationException e) {
+        log.warn("Ошибка валидации бизнес-логики: {}", e.getMessage());
+        return new ErrorResponse("Некорректные параметры запроса", e.getMessage(), "BAD_REQUEST", LocalDateTime.now());
+    }
 }

@@ -9,14 +9,14 @@ import java.util.List;
 
 public interface CompilationService {
 
-    public List<CompilationDto> getCompilations(GetCompilationsDto params);
+    List<CompilationDto> getCompilations(GetCompilationsDto params);
 
-    public CompilationDto getCompilationById(Long compId);
+    CompilationDto getCompilationById(Long compId);
 
-    public CompilationDto createCompilation(NewCompilationDto compilationDto);
+    CompilationDto createCompilation(NewCompilationDto compilationDto);
 
-    public void deleteCompilation(Long compId);
+    void deleteCompilation(Long compId);
 
-    public CompilationDto updateCompilation(Long compId, UpdateCompilationRequest updateRequest);
+    CompilationDto updateCompilation(Long compId, UpdateCompilationRequest updateRequest);
 
 }

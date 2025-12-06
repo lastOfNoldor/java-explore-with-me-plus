@@ -10,9 +10,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EventsByUserParams {
-    Long userId;
-    Integer from;
+    private Long userId;
+    private Integer from;
     @Builder.Default
-    Integer size = 10;
+    private Integer size = 10;
 
 }

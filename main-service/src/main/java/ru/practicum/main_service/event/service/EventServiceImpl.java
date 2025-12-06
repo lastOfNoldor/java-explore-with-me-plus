@@ -233,7 +233,8 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventFullDto> getEventsByAdmin(EventsByAdminParams params) {
-        log.debug("Админский поиск событий: users={}, states={}, categories={}, from={}, size={}", params.getUsers(), params.getStates(), params.getCategories(), params.getFrom(), params.getSize());
+        log.debug("Админский поиск событий: users={}, states={}, categories={}, from={}, size={}", params.getUsers(),
+                params.getStates(), params.getCategories(), params.getFrom(), params.getSize());
         LocalDateTime rangeStart = params.getRangeStart();
         LocalDateTime rangeEnd = params.getRangeEnd();
         timeRangeValidation(rangeStart, rangeEnd);
@@ -264,7 +265,8 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public List<EventShortDto> getEventsPublic(EventsPublicParams params) {
-        log.debug("Публичный поиск событий: sort={}, onlyAvailable={}, categories={}", params.getSort(), params.getOnlyAvailable(), params.getCategories());
+        log.debug("Публичный поиск событий: sort={}, onlyAvailable={}, categories={}", params.getSort(),
+                params.getOnlyAvailable(), params.getCategories());
         LocalDateTime rangeStart = params.getRangeStart();
         LocalDateTime rangeEnd = params.getRangeEnd();
         timeRangeValidation(rangeStart, rangeEnd);
@@ -289,18 +291,24 @@ public class EventServiceImpl implements EventService {
         return result;
     }
 
-    private List<EventShortDto> findSortedByDate(int from, int size, String text, List<Long> categories, Boolean paid, LocalDateTime rangeStart, LocalDateTime rangeEnd, Boolean onlyAvailable) {
+    private List<EventShortDto> findSortedByDate(int from, int size, String text, List<Long> categories,
+                                                 Boolean paid, LocalDateTime rangeStart, LocalDateTime rangeEnd,
+                                                 Boolean onlyAvailable) {
         Sort sorting = Sort.by("eventDate").ascending();
         Pageable pageable = PageRequest.of(from / size, size, sorting);
-        log.trace("Поиск с пагинацией: offset={}, limit={}, onlyAvailable={}", pageable.getOffset(), pageable.getPageSize(), onlyAvailable);
+        log.trace("Поиск с пагинацией: offset={}, limit={}, onlyAvailable={}", pageable.getOffset(),
+                pageable.getPageSize(), onlyAvailable);
         List<Event> events = eventRepository.findEventsPublic(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, pageable);
         log.trace("Найдено {} событий (сортировка по дате)", events.size());
         return findSortedEventsPublicRequest(events);
     }
 
-    private List<EventShortDto> findSortedByViews(int from, int size, String text, List<Long> categories, Boolean paid, LocalDateTime rangeStart, LocalDateTime rangeEnd, Boolean onlyAvailable) {
+    private List<EventShortDto> findSortedByViews(int from, int size, String text, List<Long> categories,
+                                                  Boolean paid, LocalDateTime rangeStart, LocalDateTime rangeEnd,
+                                                  Boolean onlyAvailable) {
         log.trace("Поиск без пагинации для сортировки по просмотрам, onlyAvailable={}", onlyAvailable);
-        List<Event> events = eventRepository.findEventsPublic(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, null);
+        List<Event> events = eventRepository.findEventsPublic(text, categories, paid, rangeStart,
+                rangeEnd, onlyAvailable, null);
         log.trace("Найдено {} событий для сортировки по просмотрам", events.size());
 
         List<EventShortDto> result = findSortedEventsPublicRequest(events);
@@ -348,7 +356,8 @@ public class EventServiceImpl implements EventService {
     private void sendStats(HttpServletRequest request) {
         final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         try {
-            EndpointHitDto hitDto = EndpointHitDto.builder().app("ewm-main-service").uri(request.getRequestURI()).ip(request.getRemoteAddr()).timestamp(LocalDateTime.now().format(FORMATTER)).build();
+            EndpointHitDto hitDto = EndpointHitDto.builder().app("ewm-main-service").uri(request.getRequestURI())
+                    .ip(request.getRemoteAddr()).timestamp(LocalDateTime.now().format(FORMATTER)).build();
 
             statClient.hit(hitDto);
         } catch (Exception e) {

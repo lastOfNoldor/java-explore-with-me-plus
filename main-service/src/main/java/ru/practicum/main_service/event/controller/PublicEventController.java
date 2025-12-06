@@ -28,9 +28,18 @@ public class PublicEventController {
     private final EventService eventService;
 
     @GetMapping("/events")
-    public List<EventShortDto> getEventsPublic(@RequestParam(required = false) String text, @RequestParam(required = false) List<Long> categories, @RequestParam(required = false) Boolean paid, @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeStart, @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd, @RequestParam(defaultValue = "false") Boolean onlyAvailable, @RequestParam(required = false) String sort, @PositiveOrZero @RequestParam(defaultValue = "0") Integer from, @Positive @RequestParam(defaultValue = "10") Integer size, HttpServletRequest request) {
+    public List<EventShortDto> getEventsPublic(@RequestParam(required = false) String text,
+                                               @RequestParam(required = false) List<Long> categories,
+                                               @RequestParam(required = false) Boolean paid,
+                                               @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeStart,
+                                               @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
+                                               @RequestParam(defaultValue = "false") Boolean onlyAvailable,
+                                               @RequestParam(required = false) String sort,
+                                               @PositiveOrZero @RequestParam(defaultValue = "0") Integer from,
+                                               @Positive @RequestParam(defaultValue = "10") Integer size, HttpServletRequest request) {
         log.info("Публичный запрос событий");
-        return eventService.getEventsPublic(new EventsPublicParams(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size, request));
+        return eventService.getEventsPublic(new EventsPublicParams(text, categories, paid, rangeStart,
+                rangeEnd, onlyAvailable, sort, from, size, request));
     }
 
     @GetMapping("/events/{id}")

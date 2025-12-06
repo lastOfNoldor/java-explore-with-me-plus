@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EventByUserRequest {
-    Long userId;
-    Long eventId;
+    private Long userId;
+    private Long eventId;
 
 }

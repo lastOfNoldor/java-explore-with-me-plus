@@ -47,13 +47,10 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     @Transactional
     public void deleteCategory(Long catId) {
-        Category category = getEntityById(catId);
-
         if (eventRepository.existsByCategoryId(catId)) {
             throw new ConflictException("Невозможно удалить категорию: существуют связанные события");
         }
-
-        categoryRepository.delete(category);
+        categoryRepository.deleteById(catId);
         log.info("Удалена категория с id: {}", catId);
     }
 

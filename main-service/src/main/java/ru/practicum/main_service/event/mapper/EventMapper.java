@@ -16,7 +16,8 @@ import ru.practicum.main_service.user.model.User;
 
 import java.time.LocalDateTime;
 
-@Mapper(componentModel = "spring", uses = {CategoryMapper.class, UserMapper.class}, imports = {LocalDateTime.class, EventState.class})
+@Mapper(componentModel = MappingConstants.ComponentModel.SPRING,
+        uses = {CategoryMapper.class, UserMapper.class}, imports = {LocalDateTime.class, EventState.class})
 public abstract class EventMapper {
 
     @Autowired

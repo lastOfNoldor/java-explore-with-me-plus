@@ -14,14 +14,14 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EventsPublicParams {
-    String text;
-    List<Long> categories;
-    Boolean paid;
-    LocalDateTime rangeStart;
-    LocalDateTime rangeEnd;
-    Boolean onlyAvailable;
-    String sort;
-    Integer from;
-    Integer size;
-    HttpServletRequest request;
+    private String text;
+    private List<Long> categories;
+    private Boolean paid;
+    private LocalDateTime rangeStart;
+    private LocalDateTime rangeEnd;
+    private Boolean onlyAvailable;
+    private String sort;
+    private Integer from;
+    private Integer size;
+    private HttpServletRequest request;
 }

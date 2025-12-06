@@ -14,11 +14,11 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EventsByAdminParams {
-    List<Long> users;
-    List<EventState> states;
-    List<Long> categories;
-    LocalDateTime rangeStart;
-    java.time.LocalDateTime rangeEnd;
-    Integer from;
-    Integer size;
+    private List<Long> users;
+    private List<EventState> states;
+    private List<Long> categories;
+    private LocalDateTime rangeStart;
+    private LocalDateTime rangeEnd;
+    private Integer from;
+    private Integer size;
 }

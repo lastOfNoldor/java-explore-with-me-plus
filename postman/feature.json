@@ -45,6 +45,46 @@
       "response": []
     },
     {
+      "name": "Модерация события с отклонением",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Event is rejected\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.state).to.equal(\"CANCELED\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"updateEvent\": {\n    \"stateAction\": \"REJECT_EVENT\"\n  },\n  \"moderationComment\": \"Событие отклонено. Необходимо добавить более подробное описание мероприятия и указать точное место проведения.\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/admin/events/1/moderate",
+          "host": ["{{base_url}}"],
+          "path": ["admin", "events", "1", "moderate"]
+        }
+      },
+      "response": []
+    },
+    {
       "name": "Модерация события с публикацией",
       "event": [
         {
@@ -80,46 +120,6 @@
           "raw": "{{base_url}}/admin/events/1/moderate",
           "host": ["{{base_url}}"],
           "path": ["admin", "events", "1", "moderate"]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Модерация события с отклонением",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test(\"Status code is 200\", function () {",
-              "    pm.response.to.have.status(200);",
-              "});",
-              "",
-              "pm.test(\"Event is rejected\", function () {",
-              "    var jsonData = pm.response.json();",
-              "    pm.expect(jsonData.state).to.equal(\"CANCELED\");",
-              "});"
-            ],
-            "type": "text/javascript"
-          }
-        }
-      ],
-      "request": {
-        "method": "PATCH",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"updateEvent\": {\n    \"stateAction\": \"REJECT_EVENT\"\n  },\n  \"moderationComment\": \"Событие отклонено. Необходимо добавить более подробное описание мероприятия и указать точное место проведения.\"\n}"
-        },
-        "url": {
-          "raw": "{{base_url}}/admin/events/2/moderate",
-          "host": ["{{base_url}}"],
-          "path": ["admin", "events", "2", "moderate"]
         }
       },
       "response": []

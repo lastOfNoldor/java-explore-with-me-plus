@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import ru.practicum.main_service.event.model.Event;
+import ru.practicum.main_service.event.model.EventState;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,5 +22,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, EventReposi
     boolean existsByCategoryId(Long categoryId);
 
     boolean existsByIdAndInitiatorId(Long eventId, Long userId);
+
+    List<Event> findByState(EventState eventState, Pageable pageable);
 
 }

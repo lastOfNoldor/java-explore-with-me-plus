@@ -17,7 +17,7 @@ public class EndpointHit {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false)
     private String app;
 
     @Column(nullable = false, length = 512)
@@ -28,4 +28,5 @@ public class EndpointHit {
 
     @Column(nullable = false)
     private LocalDateTime timestamp;
+
 }

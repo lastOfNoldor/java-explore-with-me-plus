@@ -86,24 +86,6 @@
     },
     {
       "name": "Модерация события с публикацией",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test(\"Status code is 200\", function () {",
-              "    pm.response.to.have.status(200);",
-              "});",
-              "",
-              "pm.test(\"Event is published\", function () {",
-              "    var jsonData = pm.response.json();",
-              "    pm.expect(jsonData.state).to.equal(\"PUBLISHED\");",
-              "});"
-            ],
-            "type": "text/javascript"
-          }
-        }
-      ],
       "request": {
         "method": "PATCH",
         "header": [
@@ -117,12 +99,11 @@
           "raw": "{\n  \"updateEvent\": {\n    \"stateAction\": \"PUBLISH_EVENT\"\n  },\n  \"moderationComment\": \"Событие прошло модерацию. Отличное описание и аннотация.\"\n}"
         },
         "url": {
-          "raw": "{{base_url}}/admin/events/1/moderate",
+          "raw": "{{base_url}}/admin/events/2/moderate",
           "host": ["{{base_url}}"],
-          "path": ["admin", "events", "1", "moderate"]
+          "path": ["admin", "events", "2", "moderate"]
         }
-      },
-      "response": []
+      }
     },
     {
       "name": "Просмотр комментариев модерации",

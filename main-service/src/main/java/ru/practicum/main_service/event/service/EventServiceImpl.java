@@ -114,8 +114,14 @@ public class EventServiceImpl implements EventService {
         User user = getUserById(userId);
         Category category = getCategoryById(newEventDto.getCategory());
 
-        if (newEventDto.getEventDate().isBefore(LocalDateTime.now().plusHours(2))) {
-            throw new ValidationException("Дата события должна быть не ранее чем через 2 часа от текущего момента");
+        LocalDateTime now = LocalDateTime.now();
+
+        if (newEventDto.getEventDate().isBefore(now)) {
+            throw new ValidationException("Дата события не может быть в прошлом");
+        }
+
+        if (newEventDto.getEventDate().isBefore(now.plusHours(2))) {
+            throw new ConflictException("Дата события должна быть не ранее чем через 2 часа от текущего момента");
         }
 
         Event event = eventMapper.toNewEvent(newEventDto, category, user);
@@ -156,7 +162,6 @@ public class EventServiceImpl implements EventService {
         return eventMapper.toEventFullDto(event, eventRequests, views);
     }
 
-    @Override
     @Transactional
     public EventFullDto updateEventByUser(EventByUserRequest request, UpdateEventUserRequest updateEvent) {
         Long userId = request.getUserId();
@@ -170,6 +175,18 @@ public class EventServiceImpl implements EventService {
 
         if (event.getState() == EventState.PUBLISHED) {
             throw new ConflictException("Нельзя редактировать опубликованное событие");
+        }
+
+        if (updateEvent.getEventDate() != null) {
+            LocalDateTime now = LocalDateTime.now();
+
+            if (updateEvent.getEventDate().isBefore(now)) {
+                throw new ValidationException("Дата события не может быть в прошлом");
+            }
+
+            if (updateEvent.getEventDate().isBefore(now.plusHours(2))) {
+                throw new ConflictException("Дата события должна быть не ранее чем через 2 часа от текущего момента");
+            }
         }
 
         updateEventFields(event, updateEvent);
@@ -203,8 +220,16 @@ public class EventServiceImpl implements EventService {
     public EventFullDto updateEventByAdmin(Long eventId, UpdateEventAdminRequest updateEvent) {
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new NotFoundException("Событие с id=" + eventId + " не найдено"));
 
-        if (updateEvent.getEventDate() != null && updateEvent.getEventDate().isBefore(LocalDateTime.now().plusHours(1))) {
-            throw new ConflictException("Дата события должна быть не ранее чем через 1 час от текущего момента");
+        if (updateEvent.getEventDate() != null) {
+            LocalDateTime now = LocalDateTime.now();
+
+            if (updateEvent.getEventDate().isBefore(now)) {
+                throw new ValidationException("Дата события не может быть в прошлом");
+            }
+
+            if (updateEvent.getEventDate().isBefore(now.plusHours(1))) {
+                throw new ConflictException("Дата события должна быть не ранее чем через 1 час от текущего момента");
+            }
         }
 
         updateEventFields(event, updateEvent);
@@ -393,7 +418,6 @@ public class EventServiceImpl implements EventService {
         eventMapper.updateEventFromRequest(updateEvent, event);
     }
 
-    @Override
     @Transactional
     public EventFullDtoWithModeration updateEventByAdminWithComment(
             Long eventId, UpdateEventAdminRequestWithComment updateRequest) {
@@ -406,9 +430,16 @@ public class EventServiceImpl implements EventService {
         UpdateEventAdminRequest updateEvent = updateRequest.getUpdateEvent();
         String moderationComment = updateRequest.getModerationComment();
 
-        if (updateEvent.getEventDate() != null &&
-                updateEvent.getEventDate().isBefore(LocalDateTime.now().plusHours(1))) {
-            throw new ConflictException("Дата события должна быть не ранее чем через 1 час от текущего момента");
+        if (updateEvent.getEventDate() != null) {
+            LocalDateTime now = LocalDateTime.now();
+
+            if (updateEvent.getEventDate().isBefore(now)) {
+                throw new ValidationException("Дата события не может быть в прошлом");
+            }
+
+            if (updateEvent.getEventDate().isBefore(now.plusHours(1))) {
+                throw new ConflictException("Дата события должна быть не ранее чем через 1 час от текущего момента");
+            }
         }
 
         updateEventFields(event, updateEvent);

@@ -453,25 +453,7 @@ public class EventServiceImpl implements EventService {
         Long eventRequests = getEventRequests(updatedEvent);
 
         EventFullDto eventFullDto = eventMapper.toEventFullDto(updatedEvent, eventRequests, views);
-        EventFullDtoWithModeration result = new EventFullDtoWithModeration();
-
-        result.setId(eventFullDto.getId());
-        result.setAnnotation(eventFullDto.getAnnotation());
-        result.setCategory(eventFullDto.getCategory());
-        result.setConfirmedRequests(eventFullDto.getConfirmedRequests());
-        result.setCreatedOn(eventFullDto.getCreatedOn());
-        result.setDescription(eventFullDto.getDescription());
-        result.setEventDate(eventFullDto.getEventDate());
-        result.setInitiator(eventFullDto.getInitiator());
-        result.setLocation(eventFullDto.getLocation());
-        result.setPaid(eventFullDto.getPaid());
-        result.setParticipantLimit(eventFullDto.getParticipantLimit());
-        result.setPublishedOn(eventFullDto.getPublishedOn());
-        result.setRequestModeration(eventFullDto.getRequestModeration());
-        result.setState(eventFullDto.getState());
-        result.setTitle(eventFullDto.getTitle());
-        result.setViews(eventFullDto.getViews());
-        result.setModerationComments(comments);
+        EventFullDtoWithModeration result = EventFullDtoWithModeration.fromEventFullDto(eventFullDto, comments);
 
         return result;
     }
@@ -501,25 +483,7 @@ public class EventServiceImpl implements EventService {
             List<ModerationCommentDto> comments = moderationCommentService.getCommentsByEventId(event.getId());
 
             EventFullDto eventFullDto = eventMapper.toEventFullDto(event, confirmedRequests, views);
-            EventFullDtoWithModeration result = new EventFullDtoWithModeration();
-
-            result.setId(eventFullDto.getId());
-            result.setAnnotation(eventFullDto.getAnnotation());
-            result.setCategory(eventFullDto.getCategory());
-            result.setConfirmedRequests(eventFullDto.getConfirmedRequests());
-            result.setCreatedOn(eventFullDto.getCreatedOn());
-            result.setDescription(eventFullDto.getDescription());
-            result.setEventDate(eventFullDto.getEventDate());
-            result.setInitiator(eventFullDto.getInitiator());
-            result.setLocation(eventFullDto.getLocation());
-            result.setPaid(eventFullDto.getPaid());
-            result.setParticipantLimit(eventFullDto.getParticipantLimit());
-            result.setPublishedOn(eventFullDto.getPublishedOn());
-            result.setRequestModeration(eventFullDto.getRequestModeration());
-            result.setState(eventFullDto.getState());
-            result.setTitle(eventFullDto.getTitle());
-            result.setViews(eventFullDto.getViews());
-            result.setModerationComments(comments);
+            EventFullDtoWithModeration result = EventFullDtoWithModeration.fromEventFullDto(eventFullDto, comments);
 
             return result;
         }).collect(Collectors.toList());

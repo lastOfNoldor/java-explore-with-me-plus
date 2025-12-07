@@ -11,7 +11,7 @@ import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@Builder
+//@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class EventFullDtoWithModeration extends EventFullDto {
@@ -28,6 +28,29 @@ public class EventFullDtoWithModeration extends EventFullDto {
                 initiator, location, paid, participantLimit, publishedOn, requestModeration,
                 state, title, views);
         this.moderationComments = moderationComments;
+    }
+
+    public static EventFullDtoWithModeration fromEventFullDto(EventFullDto eventFullDto,
+                                                              List<ModerationCommentDto> moderationComments) {
+        return new EventFullDtoWithModeration(
+                eventFullDto.getId(),
+                eventFullDto.getAnnotation(),
+                eventFullDto.getCategory(),
+                eventFullDto.getConfirmedRequests(),
+                eventFullDto.getCreatedOn(),
+                eventFullDto.getDescription(),
+                eventFullDto.getEventDate(),
+                eventFullDto.getInitiator(),
+                eventFullDto.getLocation(),
+                eventFullDto.getPaid(),
+                eventFullDto.getParticipantLimit(),
+                eventFullDto.getPublishedOn(),
+                eventFullDto.getRequestModeration(),
+                eventFullDto.getState(),
+                eventFullDto.getTitle(),
+                eventFullDto.getViews(),
+                moderationComments
+        );
     }
 
 }

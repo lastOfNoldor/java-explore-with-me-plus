@@ -2,6 +2,7 @@ package ru.practicum.main_service.event.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import ru.practicum.main_service.event.dto.EventFullDto;
+import ru.practicum.main_service.event.dto.EventFullDtoWithModeration;
 import ru.practicum.main_service.event.dto.EventShortDto;
 import ru.practicum.main_service.event.dto.NewEventDto;
 import ru.practicum.main_service.event.dto.param.*;
@@ -24,4 +25,10 @@ public interface EventService {
     List<EventShortDto> getEventsPublic(EventsPublicParams params);
 
     EventFullDto getEventPublic(Long eventId, HttpServletRequest request);
+
+    EventFullDtoWithModeration updateEventByAdminWithComment(Long eventId,
+                                                             UpdateEventAdminRequestWithComment updateRequest);
+
+    List<EventFullDtoWithModeration> getEventsForModeration(Integer from, Integer size);
+
 }

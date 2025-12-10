@@ -57,4 +57,13 @@ public class ModerationCommentService {
         }
     }
 
+    public List<ModerationCommentDto> getCommentsByEventIds(List<Long> eventIds) {
+        if (eventIds == null || eventIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<ModerationComment> comments = moderationCommentRepository.findAllByEventIdIn(eventIds);
+        return moderationCommentMapper.toDtoList(comments);
+    }
+
 }

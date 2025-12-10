@@ -504,20 +504,40 @@ public class EventServiceImpl implements EventService {
             return Collections.emptyList();
         }
 
+        List<Long> eventIds = events.stream()
+                .map(Event::getId)
+                .collect(Collectors.toList());
+
         Map<Long, Long> confirmedRequestsMap = getConfirmedRequestsBatch(events);
         Map<Long, Long> viewsMap = getEventsViewsBatch(events);
+
+        Map<Long, List<ModerationCommentDto>> commentsMap = getCommentsBatch(eventIds);
 
         return events.stream().map(event -> {
             Long confirmedRequests = confirmedRequestsMap.getOrDefault(event.getId(), 0L);
             Long views = viewsMap.getOrDefault(event.getId(), 0L);
 
-            List<ModerationCommentDto> comments = moderationCommentService.getCommentsByEventId(event.getId());
+            List<ModerationCommentDto> comments = commentsMap.getOrDefault(event.getId(), Collections.emptyList());
 
             EventFullDto eventFullDto = eventMapper.toEventFullDto(event, confirmedRequests, views);
             EventFullDtoWithModeration result = EventFullDtoWithModeration.fromEventFullDto(eventFullDto, comments);
 
             return result;
         }).collect(Collectors.toList());
+    }
+
+    private Map<Long, List<ModerationCommentDto>> getCommentsBatch(List<Long> eventIds) {
+        if (eventIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        List<ModerationCommentDto> allComments = moderationCommentService.getCommentsByEventIds(eventIds);
+
+        return allComments.stream()
+                .collect(Collectors.groupingBy(
+                        ModerationCommentDto::getEventId,
+                        Collectors.toList()
+                ));
     }
 
 }

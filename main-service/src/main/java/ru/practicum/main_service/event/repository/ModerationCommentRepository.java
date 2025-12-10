@@ -11,4 +11,5 @@ public interface ModerationCommentRepository extends JpaRepository<ModerationCom
 
     List<ModerationComment> findByEventIdOrderByCreatedOnDesc(Long eventId);
 
+    List<ModerationComment> findAllByEventIdIn(List<Long> eventIds);
 }
